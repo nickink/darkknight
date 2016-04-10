@@ -26,6 +26,8 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	private GameMode mGameMode;
 
+	private int mCurrentState;
+
 
 	public BluetoothGameController(Context context) {
 		this(context, BluetoothAdapter.getDefaultAdapter());
@@ -126,12 +128,12 @@ public class BluetoothGameController extends AbstractGameController implements B
 	 */
 	private void sendMessage(String message) {
 		// Check that we're actually connected before trying anything
-		if (mBluetoothGameEventListener.getState() != BluetoothGameEventListener.STATE_CONNECTED) {
-			Toast.makeText(mContext, "Not connected to another player.", Toast.LENGTH_SHORT).show();
+		if (mBluetoothGameEventListener.getState() != BluetoothGameEventListener.State.STATE_CONNECTED) {
+			Toast.makeText(mContext, R.string.not_connected_to_another_player, Toast.LENGTH_SHORT).show();
 			return;
 		}
 
-		// Check that there's actually something to send
+		// check that there's actually something to send
 		if (message.length() > 0) {
 			// Get the message bytes and tell the BluetoothGameEventListener to write
 			byte[] dataToSend = message.getBytes();
@@ -206,52 +208,77 @@ public class BluetoothGameController extends AbstractGameController implements B
 		}
 	}
 
+//	@Override
+//	public void onBluetoothStateChange(@Nullable BluetoothDevice remoteDevice, int code) {
+//		if (getGui() == null) {
+//			return;
+//		}
+//
+//		switch (code) {
+//			case BluetoothGameEventListener.STATE_CONNECTED:
+//				if (getGameMode() != null) {
+//					getGui().dismissSnackbar();
+//
+//					startNewGame();
+//
+//					if (getGameMode() == GameMode.PLAYER_WHITE) {
+//						BluetoothGameController.this.sendMessage("iplaywhite");
+//					} else {
+//						BluetoothGameController.this.sendMessage("iplayblack");
+//					}
+//
+//					resume();
+//				} else {
+//					getGui().showSnackbar(mContext.getString(R.string.connected_to_bluetooth_device),
+//							Snackbar.LENGTH_INDEFINITE);
+//				}
+//
+//				break;
+//			case BluetoothGameEventListener.STATE_CONNECTING:
+//				getGui().showSnackbar(mContext.getString(R.string.connecting_to_bluetooth_device),
+//						Snackbar.LENGTH_INDEFINITE);
+//				break;
+//			case BluetoothGameEventListener.STATE_LISTEN:
+//				getGui().showSnackbar(mContext.getString(R.string.waiting_for_a_bluetooth_opponent_to_connect),
+//						Snackbar.LENGTH_INDEFINITE);
+//				break;
+//			case BluetoothGameEventListener.STATE_LOST_CONNECTION:
+//				if (isGameActive()) {
+//					getGui().showSnackbar(
+//							mContext.getString(R.string.bluetooth_connection_to_device_lost),
+//							Snackbar.LENGTH_INDEFINITE);
+//					pause();
+//				}
+//				break;
+//			case BluetoothGameEventListener.STATE_NONE:
+//				// mTitle.setText(R.string.title_not_connected);
+//				break;
+//		}
+//	}
+
 	@Override
-	public void onBluetoothStateChange(@Nullable BluetoothDevice remoteDevice, int code) {
+	public void onBluetoothListening() {
 		if (getGui() == null) {
 			return;
 		}
 
-		switch (code) {
-			case BluetoothGameEventListener.STATE_CONNECTED:
-				if (getGameMode() != null) {
-					getGui().dismissSnackbar();
+		getGui().showSnackbar(mContext.getString(R.string.waiting_for_a_bluetooth_opponent_to_connect),
+				Snackbar.LENGTH_INDEFINITE);
+	}
 
-					startNewGame();
+	@Override
+	public void onBluetoothStopped() {
 
-					if (getGameMode() == GameMode.PLAYER_WHITE) {
-						BluetoothGameController.this.sendMessage("iplaywhite");
-					} else {
-						BluetoothGameController.this.sendMessage("iplayblack");
-					}
+	}
 
-					resume();
-				} else {
-					getGui().showSnackbar(mContext.getString(R.string.connected_to_bluetooth_device),
-							Snackbar.LENGTH_INDEFINITE);
-				}
-
-				break;
-			case BluetoothGameEventListener.STATE_CONNECTING:
-				getGui().showSnackbar(mContext.getString(R.string.connecting_to_bluetooth_device),
-						Snackbar.LENGTH_INDEFINITE);
-				break;
-			case BluetoothGameEventListener.STATE_LISTEN:
-				getGui().showSnackbar(mContext.getString(R.string.waiting_for_a_bluetooth_opponent_to_connect),
-						Snackbar.LENGTH_INDEFINITE);
-				break;
-			case BluetoothGameEventListener.STATE_LOST_CONNECTION:
-				if (isGameActive()) {
-					getGui().showSnackbar(
-							mContext.getString(R.string.bluetooth_connection_to_device_lost),
-							Snackbar.LENGTH_INDEFINITE);
-					pause();
-				}
-				break;
-			case BluetoothGameEventListener.STATE_NONE:
-				// mTitle.setText(R.string.title_not_connected);
-				break;
+	@Override
+	public void onBluetoothConnectingToDevice(BluetoothDevice device) {
+		if (getGui() == null) {
+			return;
 		}
+
+		getGui().showSnackbar(mContext.getString(R.string.connecting_to_bluetooth_device),
+				Snackbar.LENGTH_INDEFINITE);
 	}
 
 	@Override
@@ -312,8 +339,22 @@ public class BluetoothGameController extends AbstractGameController implements B
 	@SuppressWarnings("ConstantConditions")
 	@Override
 	public void onBluetoothDeviceConnected(BluetoothDevice device) {
-		getGui().showSnackbar(mContext.getString(R.string.connected_to_bluetooth_device),
-				Snackbar.LENGTH_LONG);
+		if (getGameMode() != null) {
+			getGui().dismissSnackbar();
+
+			startNewGame();
+
+			if (getGameMode() == GameMode.PLAYER_WHITE) {
+				BluetoothGameController.this.sendMessage("iplaywhite");
+			} else {
+				BluetoothGameController.this.sendMessage("iplayblack");
+			}
+
+			resume();
+		} else {
+			getGui().showSnackbar(mContext.getString(R.string.connected_to_bluetooth_device),
+					Snackbar.LENGTH_INDEFINITE);
+		}
 	}
 
 	@SuppressWarnings("ConstantConditions")
@@ -322,5 +363,18 @@ public class BluetoothGameController extends AbstractGameController implements B
 		setGameMode(null);
 		getGui().showSnackbar(mContext.getString(R.string.connection_to_bluetooth_device_failed),
 				Snackbar.LENGTH_LONG);
+	}
+
+	@Override
+	public void onBluetoothConnectionLost(BluetoothDevice device) {
+		if (isGameActive()) {
+			if (getGui() != null) {
+				getGui().showSnackbar(
+						mContext.getString(R.string.bluetooth_connection_to_device_lost),
+						Snackbar.LENGTH_INDEFINITE);
+			}
+
+			pause();
+		}
 	}
 }

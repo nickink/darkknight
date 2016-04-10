@@ -4,9 +4,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
 import org.empyrn.darkknight.BuildConfig;
@@ -23,32 +20,31 @@ import java.util.UUID;
  * performing data transmissions when connected.
  */
 public class BluetoothGameEventListener {
-	// Debugging
+	// debugging tag
 	private static final String TAG = "BluetoothEventListener";
 
-	// Name for the SDP record when creating server socket
+	// name for the SDP record when creating server socket
 	private static final String NAME = "Dark Knight Bluetooth Game Controller";
 
-	// Unique UUID for this application
+	// unique UUID for Dark Knight chess service
 	private static final UUID DARK_KNIGHT_GAME_CONTROLLER_UUID = UUID.fromString("72caefa0-568b-11e0-b8af-0800200c9a66");
 
-	// Member fields
+	// member fields
 	private final BluetoothAdapter mAdapter;
-	private final Handler mHandler;
+	private final BluetoothMessageHandler mHandler;
 	private AcceptThread mAcceptThread;
 	private ConnectThread mConnectThread;
 	private ConnectedThread mConnectedThread;
-	private int mState;
+	private State mState;
 
 	// Constants that indicate the current connection state
-	public static final int STATE_NONE = 0; // we're doing nothing
-	public static final int STATE_LISTEN = 1; // now listening for incoming
-	// connections
-	public static final int STATE_CONNECTING = 2; // now initiating an outgoing
-	// connection
-	public static final int STATE_CONNECTED = 3; // now connected to a remote
-	// device
-	public static final int STATE_LOST_CONNECTION = 4; // lost connection
+	public enum State {
+		STATE_NONE,             // doing nothing
+		STATE_LISTEN,           // listening for incoming connections
+		STATE_CONNECTING,       // now initiating an outgoing connection
+		STATE_CONNECTED,        // now connected to a remote device
+		STATE_LOST_CONNECTION   // lost connection
+	}
 
 	/**
 	 * Constructor. Prepares a new BluetoothGameController session.
@@ -57,7 +53,7 @@ public class BluetoothGameEventListener {
 	 */
 	public BluetoothGameEventListener(BluetoothAdapter adapter, BluetoothMessageHandler handler) {
 		mAdapter = adapter;
-		mState = STATE_NONE;
+		mState = State.STATE_NONE;
 		mHandler = handler;
 	}
 
@@ -66,26 +62,21 @@ public class BluetoothGameEventListener {
 	 *
 	 * @param state An integer defining the current connection state
 	 */
-	private synchronized void setState(BluetoothDevice device, int state) {
+	private synchronized void setState(State state) {
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "setState() " + mState + " -> " + state);
 		}
 
 		mState = state;
 
-		// Give the new state to the Handler so the UI Activity can update
-		Message msg = mHandler.obtainMessage(BluetoothMessageHandler.MESSAGE_STATE_CHANGE,
-				state, -1);
-		Bundle bundle = new Bundle();
-		bundle.putParcelable(BluetoothMessageHandler.BLUETOOTH_DEVICE, device);
-		msg.setData(bundle);
-		msg.sendToTarget();
+//		// give the new state to the handler so the UI Activity can update
+//		mHandler.onStateChanged(mState);
 	}
 
 	/**
 	 * Return the current connection state.
 	 */
-	public synchronized int getState() {
+	public synchronized State getState() {
 		return mState;
 	}
 
@@ -112,15 +103,8 @@ public class BluetoothGameEventListener {
 			mAcceptThread.start();
 		}
 
-		setState(null, STATE_LISTEN);
-
-//		Message msg = mHandler
-//				.obtainMessage(BluetoothGameController.MESSAGE_TOAST);
-//		Bundle bundle = new Bundle();
-//		bundle.putString(BluetoothGameController.TOAST,
-//				"Bluetooth chess service started");
-//		msg.setData(bundle);
-//		mHandler.sendMessage(msg);
+		setState(State.STATE_LISTEN);
+		mHandler.onBluetoothListening();
 	}
 
 	/**
@@ -145,7 +129,8 @@ public class BluetoothGameEventListener {
 			mAcceptThread.start();
 		}
 
-		setState(null, STATE_LISTEN);
+		setState(State.STATE_LISTEN);
+		mHandler.onBluetoothListening();
 	}
 
 	/**
@@ -159,7 +144,7 @@ public class BluetoothGameEventListener {
 		}
 
 		// Cancel any thread attempting to make a connection
-		if (mState == STATE_CONNECTING) {
+		if (mState == State.STATE_CONNECTING) {
 			if (mConnectThread != null) {
 				mConnectThread.cancel();
 				mConnectThread = null;
@@ -175,7 +160,8 @@ public class BluetoothGameEventListener {
 		// Start the thread to connect with the given device
 		mConnectThread = new ConnectThread(device);
 		mConnectThread.start();
-		setState(device, STATE_CONNECTING);
+		setState(State.STATE_CONNECTING);
+		mHandler.onBluetoothConnectingToDevice(device);
 	}
 
 	/**
@@ -184,7 +170,7 @@ public class BluetoothGameEventListener {
 	 * @param socket The BluetoothSocket on which the connection was made
 	 * @param device The BluetoothDevice that has been connected
 	 */
-	public synchronized void connected(BluetoothSocket socket,
+	private synchronized void connected(BluetoothSocket socket,
 	                                   BluetoothDevice device) {
 		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "connected");
@@ -213,15 +199,9 @@ public class BluetoothGameEventListener {
 		mConnectedThread = new ConnectedThread(socket);
 		mConnectedThread.start();
 
-		// Send the name of the connected device back to the UI Activity
-		Message msg = mHandler
-				.obtainMessage(BluetoothMessageHandler.MESSAGE_BLUETOOTH_DEVICE_CONNECTED);
-		Bundle bundle = new Bundle();
-		bundle.putParcelable(BluetoothMessageHandler.BLUETOOTH_DEVICE, device);
-		msg.setData(bundle);
-		mHandler.sendMessage(msg);
-
-		setState(device, STATE_CONNECTED);
+		// send the name of the connected device back to the UI Activity
+		setState(State.STATE_CONNECTED);
+		mHandler.onBluetoothDeviceConnected(device);
 	}
 
 	/**
@@ -232,18 +212,11 @@ public class BluetoothGameEventListener {
 			Log.d(TAG, "stopListening");
 		}
 
-//		Message msg = mHandler
-//				.obtainMessage(BluetoothGameController.MESSAGE_TOAST);
-//		Bundle bundle = new Bundle();
-//		bundle.putString(BluetoothGameController.TOAST,
-//				"Bluetooth chess service stopped");
-//		msg.setData(bundle);
-//		mHandler.sendMessage(msg);
-
 		if (mConnectThread != null) {
 			mConnectThread.cancel();
 			mConnectThread = null;
 		}
+
 		if (mConnectedThread != null) {
 			mConnectedThread.cancel();
 			mConnectedThread = null;
@@ -253,7 +226,8 @@ public class BluetoothGameEventListener {
 			mAcceptThread = null;
 		}
 
-		setState(null ,STATE_NONE);
+		setState(State.STATE_NONE);
+		mHandler.onBluetoothStopped();
 	}
 
 	/**
@@ -267,7 +241,7 @@ public class BluetoothGameEventListener {
 		ConnectedThread r;
 		// Synchronize a copy of the ConnectedThread
 		synchronized (this) {
-			if (mState != STATE_CONNECTED)
+			if (mState != State.STATE_CONNECTED)
 				return;
 			r = mConnectedThread;
 		}
@@ -279,22 +253,16 @@ public class BluetoothGameEventListener {
 	 * Indicate that the connection attempt failed and notify the UI Activity.
 	 */
 	private void connectionFailed(BluetoothDevice device) {
-		setState(null, STATE_LISTEN);
-
-		// Send a failure message back to the Activity
-		Message msg = mHandler
-				.obtainMessage(BluetoothMessageHandler.MESSAGE_CONNECTION_FAILED);
-		Bundle bundle = new Bundle();
-		bundle.putParcelable(BluetoothMessageHandler.BLUETOOTH_DEVICE, device);
-		msg.setData(bundle);
-		mHandler.sendMessage(msg);
+		setState(State.STATE_LISTEN);
+		mHandler.onConnectionFailed();
 	}
 
 	/**
 	 * Indicate that the connection was lost and notify the UI Activity.
 	 */
 	private void connectionLost(BluetoothDevice forDevice) {
-		setState(forDevice, STATE_LOST_CONNECTION);
+		setState(State.STATE_LOST_CONNECTION);
+		mHandler.onConnectionLost();
 	}
 
 	/**
@@ -326,7 +294,7 @@ public class BluetoothGameEventListener {
 			BluetoothSocket socket;
 
 			// Listen to the server socket if we're not connected
-			while (mState != STATE_CONNECTED) {
+			while (mState != BluetoothGameEventListener.State.STATE_CONNECTED) {
 				try {
 					// This is a blocking call and will only return on a
 					// successful connection or an exception
@@ -359,13 +327,17 @@ public class BluetoothGameEventListener {
 					}
 				}
 			}
-			if (BuildConfig.DEBUG)
+
+			if (BuildConfig.DEBUG) {
 				Log.i(TAG, "END mAcceptThread");
+			}
 		}
 
 		public void cancel() {
-			if (BuildConfig.DEBUG)
+			if (BuildConfig.DEBUG) {
 				Log.d(TAG, "cancel " + this);
+			}
+
 			try {
 				mmServerSocket.close();
 			} catch (IOException e) {
@@ -474,16 +446,14 @@ public class BluetoothGameEventListener {
 			byte[] buffer = new byte[1024];
 			int bytes;
 
-			// Keep listening to the InputStream while connected
+			// keep listening to the InputStream while connected
 			while (true) {
 				try {
 					// Read from the InputStream
 					bytes = mmInStream.read(buffer);
 
 					// Send the obtained bytes to the UI Activity
-					mHandler.obtainMessage(
-							BluetoothMessageHandler.MESSAGE_READ, bytes, -1,
-							buffer).sendToTarget();
+					mHandler.onMessageReceived(bytes, buffer);
 				} catch (IOException e) {
 					Log.e(TAG, "disconnected", e);
 					connectionLost(mmSocket.getRemoteDevice());
@@ -500,10 +470,7 @@ public class BluetoothGameEventListener {
 		public void write(byte[] buffer) {
 			try {
 				mmOutStream.write(buffer);
-
-				// Share the sent message back to the UI Activity
-				mHandler.obtainMessage(BluetoothMessageHandler.MESSAGE_WRITE,
-						-1, -1, buffer).sendToTarget();
+				mHandler.onMessageWritten(buffer);
 			} catch (IOException e) {
 				Log.e(TAG, "Exception during write", e);
 			}

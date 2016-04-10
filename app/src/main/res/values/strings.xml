@@ -323,4 +323,5 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="opponent_attemped_to_cheat_so_the_game_was_ended">Your opponent attempted to cheat, so the game was ended.</string>
 	<string name="waiting_for_a_bluetooth_opponent_to_connect">Waiting for a Bluetooth opponent to connect.</string>
 	<string name="connecting_to_bluetooth_device">Connecting to Bluetooth device...</string>
+	<string name="not_connected_to_another_player">Not connected to another player.</string>
 </resources>

@@ -1,6 +1,7 @@
 package org.empyrn.darkknight.bluetooth;
 
 import android.bluetooth.BluetoothDevice;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -10,73 +11,144 @@ import org.empyrn.darkknight.BuildConfig;
 
 /**
  * Created by nick on 2/24/16.
+ *
+ * Bridge component between non-UI Bluetooth threads and the UI. Handles individual events with arguments
+ * and acts on the UI accordingly.
  */
-class BluetoothMessageHandler extends Handler {
-	static final int MESSAGE_STATE_CHANGE = 1;
-	static final int MESSAGE_READ = 2;
-	static final int MESSAGE_WRITE = 3;
-	static final int MESSAGE_BLUETOOTH_DEVICE_CONNECTED = 4;
-	static final int MESSAGE_CONNECTION_FAILED = 5;
+class BluetoothMessageHandler {
 
-	// key names received from the BluetoothGameEventListener Handler
-	static final String BLUETOOTH_DEVICE = "BluetoothDevice";
+	private enum Event {
+		MESSAGE_LISTENING,
+		MESSAGE_STOPPED,
+		MESSAGE_CONNECTING_TO_DEVICE,
+		MESSAGE_CONNECTED_TO_DEVICE,
+		MESSAGE_CONNECTION_FAILED,
+		MESSAGE_CONNECTION_LOST,
+		MESSAGE_READ,
+		MESSAGE_WRITE
+	}
 
 	private Callback mCallback;
 
+	private BluetoothDevice mCurrentDevice;
 
 	interface Callback {
-		void onBluetoothStateChange(BluetoothDevice fromDevice, int code);
-		void onBluetoothMessageReceived(BluetoothDevice fromDevice, String message);
+		void onBluetoothListening();
+		void onBluetoothStopped();
+		void onBluetoothConnectingToDevice(BluetoothDevice device);
 		void onBluetoothDeviceConnected(BluetoothDevice device);
 		void onBluetoothConnectionFailed(BluetoothDevice device);
+		void onBluetoothConnectionLost(BluetoothDevice device);
+		void onBluetoothMessageReceived(BluetoothDevice fromDevice, String message);
 	}
 
 	BluetoothMessageHandler() {
-		super(Looper.getMainLooper());
+
+	}
+
+	void onBluetoothListening() {
+		Message message = mInternalHandler.obtainMessage(Event.MESSAGE_LISTENING.ordinal());
+		message.sendToTarget();
+	}
+
+	void onBluetoothStopped() {
+		mCurrentDevice = null;
+		Message message = mInternalHandler.obtainMessage(Event.MESSAGE_STOPPED.ordinal());
+		message.sendToTarget();
+	}
+
+	void onBluetoothConnectingToDevice(BluetoothDevice bluetoothDevice) {
+		mCurrentDevice = bluetoothDevice;
+		Message message = mInternalHandler.obtainMessage(Event.MESSAGE_CONNECTING_TO_DEVICE.ordinal());
+		message.sendToTarget();
+	}
+
+	void onBluetoothDeviceConnected(BluetoothDevice bluetoothDevice) {
+		mCurrentDevice = bluetoothDevice;
+		Message message = mInternalHandler.obtainMessage(Event.MESSAGE_CONNECTED_TO_DEVICE.ordinal());
+		message.sendToTarget();
+	}
+
+	void onConnectionFailed() {
+		mCurrentDevice = null;
+		Message message = mInternalHandler.obtainMessage(Event.MESSAGE_CONNECTION_FAILED.ordinal());
+		message.sendToTarget();
+	}
+
+	void onConnectionLost() {
+		Message message = mInternalHandler.obtainMessage(Event.MESSAGE_CONNECTION_LOST.ordinal());
+		message.sendToTarget();
+	}
+
+	void onMessageReceived(int count, byte[] buffer) {
+		mInternalHandler.obtainMessage(
+				Event.MESSAGE_READ.ordinal(), count, -1, buffer).sendToTarget();
+	}
+
+	void onMessageWritten(byte[] bytes) {
+		// Share the sent message back to the UI Activity
+		mInternalHandler.obtainMessage(Event.MESSAGE_WRITE.ordinal(), -1, -1, bytes).sendToTarget();
 	}
 
 	public void setCallback(Callback callback) {
 		mCallback = callback;
 	}
 
-	@Override
-	public void handleMessage(Message msg) {
-		switch (msg.what) {
-			case MESSAGE_STATE_CHANGE:
-				if (BuildConfig.DEBUG) {
-					Log.i(getClass().getSimpleName(), "MESSAGE_STATE_CHANGE: " + msg.arg1);
-				}
+	private final Handler mInternalHandler = new Handler(Looper.getMainLooper()) {
+		@Override
+		public void handleMessage(Message msg) {
+			Event event = Event.values()[msg.what];
 
-				mCallback.onBluetoothStateChange(null, msg.arg1);
-				break;
-			case MESSAGE_WRITE:
-				byte[] writeBuf = (byte[]) msg.obj;
-				// construct a string from the buffer
-				String writeMessage = new String(writeBuf);
+			switch (event) {
+				case MESSAGE_LISTENING:
+					if (BuildConfig.DEBUG) {
+						Log.i(getClass().getSimpleName(), "BLUETOOTH LISTENING");
+					}
 
-				if (BuildConfig.DEBUG) {
-					Log.i(getClass().getSimpleName(), "BLUETOOTH_out: " + writeMessage);
-				}
+					mCallback.onBluetoothListening();
+					break;
+				case MESSAGE_STOPPED:
+					mCallback.onBluetoothStopped();
+					break;
+				case MESSAGE_CONNECTING_TO_DEVICE:
+					if (BuildConfig.DEBUG) {
+						Log.i(getClass().getSimpleName(), "BLUETOOTH CONNECTING TO " +
+								mCurrentDevice.getAddress() + " (" + mCurrentDevice.getAddress() + ")");
+					}
 
-				break;
-			case MESSAGE_READ:
-				byte[] readBuf = (byte[]) msg.obj;
-				// construct a string from the valid bytes in the buffer
-				String readMessage = new String(readBuf, 0, msg.arg1);
+					mCallback.onBluetoothConnectingToDevice(mCurrentDevice);
+					break;
+				case MESSAGE_CONNECTED_TO_DEVICE:
+					mCallback.onBluetoothDeviceConnected(mCurrentDevice);
+					break;
+				case MESSAGE_CONNECTION_LOST:
+					mCallback.onBluetoothConnectionLost(mCurrentDevice);
+					break;
+				case MESSAGE_WRITE:
+					byte[] writeBuf = (byte[]) msg.obj;
+					// construct a string from the buffer
+					String writeMessage = new String(writeBuf);
 
-				if (BuildConfig.DEBUG) {
-					Log.i(getClass().getSimpleName(), "BLUETOOTH_in: " + readMessage);
-				}
+					if (BuildConfig.DEBUG) {
+						Log.i(getClass().getSimpleName(), "BLUETOOTH_out: " + writeMessage);
+					}
 
-				mCallback.onBluetoothMessageReceived(msg.getData().<BluetoothDevice>getParcelable(BLUETOOTH_DEVICE), readMessage);
-				break;
-			case MESSAGE_CONNECTION_FAILED:
-				mCallback.onBluetoothConnectionFailed(msg.getData().<BluetoothDevice>getParcelable(BLUETOOTH_DEVICE));
-				break;
-			case MESSAGE_BLUETOOTH_DEVICE_CONNECTED:
-				// save the info about the connected device
-				mCallback.onBluetoothDeviceConnected(msg.getData().<BluetoothDevice>getParcelable(BLUETOOTH_DEVICE));
-				break;
+					break;
+				case MESSAGE_READ:
+					byte[] readBuf = (byte[]) msg.obj;
+					// construct a string from the valid bytes in the buffer
+					String readMessage = new String(readBuf, 0, msg.arg1);
+
+					if (BuildConfig.DEBUG) {
+						Log.i(getClass().getSimpleName(), "BLUETOOTH_in: " + readMessage);
+					}
+
+					mCallback.onBluetoothMessageReceived(mCurrentDevice, readMessage);
+					break;
+				case MESSAGE_CONNECTION_FAILED:
+					mCallback.onBluetoothConnectionFailed(mCurrentDevice);
+					break;
+			}
 		}
-	}
+	};
 }
