@@ -67,13 +67,15 @@ public class BluetoothGameController extends AbstractGameController implements B
 			discoverableIntent.putExtra(
 					BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
 			context.startActivity(discoverableIntent);
-		} else if (getGui() != null) {
-			getGui().showMessage(mContext.getString(
-					R.string.this_device_is_already_discoverable), Snackbar.LENGTH_SHORT);
-		} else {
-			Toast.makeText(mContext, mContext.getString(
-					R.string.this_device_is_already_discoverable), Toast.LENGTH_SHORT).show();
 		}
+
+//		else if (getGui() != null) {
+////			getGui().showMessage(mContext.getString(
+////					R.string.this_device_is_already_discoverable), Snackbar.LENGTH_SHORT);
+//		} else {
+//			Toast.makeText(mContext, mContext.getString(
+//					R.string.this_device_is_already_discoverable), Toast.LENGTH_SHORT).show();
+//		}
 	}
 
 	@Nullable

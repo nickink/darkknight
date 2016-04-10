@@ -171,7 +171,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				GameMode gameMode = GameMode.values()[savedInstanceState.getInt("GameMode")];
 				mGameController.restoreGame(gameMode, savedInstanceState.getByteArray("Status"));
 			} else {
-				if (savedInstanceState != null) {
+				if (savedInstanceState != null && !(mGameController instanceof BluetoothGameController)) {
 					// indicate that an error occurred attempting to reload from the saved instance state
 					Toast.makeText(this, R.string.game_could_not_be_restored, Toast.LENGTH_SHORT).show();
 				}
@@ -277,8 +277,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			}
 		});
 
-		// hide FAB at the start
-		fab.hide();
+		if (mGameController != null && mGameController.getGame() == null) {
+			fab.show();
+		} else {
+			fab.hide();
+		}
 
 		thinkingInfoView = (TextView) findViewById(R.id.thinking_info);
 
@@ -368,6 +371,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			moveListView.setText(null);
 			mChessBoardView.clearMoveHints();
 			mChessBoardView.clearSelection();
+			mChessBoardView.setPosition(null);
 		}
 
 		mChessBoardView.setEnabled(mGameController != null && mGameController.isGameActive());
@@ -516,7 +520,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					ContextCompat.getDrawable(this, R.drawable.ic_bluetooth_white_24dp));
 
 			final MenuItem startBluetoothGame = menu.findItem(R.id.bluetooth_create);
-			startBluetoothGame.setEnabled(mGameController instanceof BluetoothGameController);
+			startBluetoothGame.setEnabled(isUsingBluetooth && !isConnected);
 
 			final MenuItem bluetoothDiscoverableMenuItem = menu.findItem(R.id.bluetooth_set_discoverable);
 
@@ -665,6 +669,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
 				return true;
 			case R.id.bluetooth_set_discoverable:
+				if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
+					Snackbar.make(mCoordinatorView, R.string.enable_bluetooth_to_play, Snackbar.LENGTH_LONG).show();
+					return true;
+				}
+
 				destroyGame();
 
 				final BluetoothGameController bGameCtrl
@@ -675,12 +684,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				mGameController = bGameCtrl;
 
 				bGameCtrl.setDiscoverable(this);
-				ActivityCompat.invalidateOptionsMenu(this);
+				invalidateUi();
 
 				return true;
 			case R.id.bluetooth_disconnect:
 				mGameController.stopGame();
-				invalidateUi();
 				break;
 			case R.id.item_about:
 				showDialog(ABOUT_DIALOG);

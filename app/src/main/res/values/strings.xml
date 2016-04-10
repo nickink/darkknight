@@ -353,4 +353,5 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="draw_offer_declined">Draw offer declined.</string>
 	<string name="stop_game">Stop game</string>
 	<string name="bluetooth_disconnect">Disconnect</string>
+	<string name="enable_bluetooth_to_play">Enable Bluetooth to play.</string>
 </resources>

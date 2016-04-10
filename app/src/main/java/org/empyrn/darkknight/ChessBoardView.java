@@ -105,7 +105,11 @@ public class ChessBoardView extends View {
 	 * @param pos position to show
 	 */
 	public final void setPosition(Position pos) {
-		if (this.pos.equals(pos)) {
+		if (pos == null) {
+			pos = new Position();
+		}
+
+		if (pos.equals(this.pos)) {
 			return;
 		}
 
