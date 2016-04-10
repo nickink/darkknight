@@ -37,7 +37,7 @@ public class BluetoothGameEventListener {
 	private ConnectedThread mConnectedThread;
 	private State mState;
 
-	// Constants that indicate the current connection state
+	// constants that indicate the current connection state
 	public enum State {
 		STATE_NONE,             // doing nothing
 		STATE_LISTEN,           // listening for incoming connections
@@ -60,7 +60,7 @@ public class BluetoothGameEventListener {
 	/**
 	 * Set the current state of the chat connection
 	 *
-	 * @param state An integer defining the current connection state
+	 * @param state A value defining the current connection state
 	 */
 	private synchronized void setState(State state) {
 		if (BuildConfig.DEBUG) {
@@ -68,9 +68,6 @@ public class BluetoothGameEventListener {
 		}
 
 		mState = state;
-
-//		// give the new state to the handler so the UI Activity can update
-//		mHandler.onStateChanged(mState);
 	}
 
 	/**
@@ -85,19 +82,19 @@ public class BluetoothGameEventListener {
 			Log.d(TAG, "startListening");
 		}
 
-		// Cancel any thread attempting to make a connection
+		// cancel any thread attempting to make a connection
 		if (mConnectThread != null) {
 			mConnectThread.cancel();
 			mConnectThread = null;
 		}
 
-		// Cancel any thread currently running a connection
+		// cancel any thread currently running a connection
 		if (mConnectedThread != null) {
 			mConnectedThread.cancel();
 			mConnectedThread = null;
 		}
 
-		// Start the thread to listen on a BluetoothServerSocket
+		// start the thread to listen on a BluetoothServerSocket
 		if (mAcceptThread == null) {
 			mAcceptThread = new AcceptThread();
 			mAcceptThread.start();
@@ -111,19 +108,19 @@ public class BluetoothGameEventListener {
 	 * Reset the service.
 	 */
 	public synchronized void reset() {
-		// Cancel any thread attempting to make a connection
+		// cancel any thread attempting to make a connection
 		if (mConnectThread != null) {
 			mConnectThread.cancel();
 			mConnectThread = null;
 		}
 
-		// Cancel any thread currently running a connection
+		// cancel any thread currently running a connection
 		if (mConnectedThread != null) {
 			mConnectedThread.cancel();
 			mConnectedThread = null;
 		}
 
-		// Start the thread to listen on a BluetoothServerSocket
+		// start the thread to listen on a BluetoothServerSocket
 		if (mAcceptThread == null) {
 			mAcceptThread = new AcceptThread();
 			mAcceptThread.start();
@@ -143,7 +140,7 @@ public class BluetoothGameEventListener {
 			Log.d(TAG, "connect to: " + device);
 		}
 
-		// Cancel any thread attempting to make a connection
+		// cancel any thread attempting to make a connection
 		if (mState == State.STATE_CONNECTING) {
 			if (mConnectThread != null) {
 				mConnectThread.cancel();
@@ -151,13 +148,13 @@ public class BluetoothGameEventListener {
 			}
 		}
 
-		// Cancel any thread currently running a connection
+		// cancel any thread currently running a connection
 		if (mConnectedThread != null) {
 			mConnectedThread.cancel();
 			mConnectedThread = null;
 		}
 
-		// Start the thread to connect with the given device
+		// start the thread to connect with the given device
 		mConnectThread = new ConnectThread(device);
 		mConnectThread.start();
 		setState(State.STATE_CONNECTING);
@@ -176,26 +173,26 @@ public class BluetoothGameEventListener {
 			Log.d(TAG, "connected");
 		}
 
-		// Cancel the thread that completed the connection
+		// cancel the thread that completed the connection
 		if (mConnectThread != null) {
 			mConnectThread.cancel();
 			mConnectThread = null;
 		}
 
-		// Cancel any thread currently running a connection
+		// cancel any thread currently running a connection
 		if (mConnectedThread != null) {
 			mConnectedThread.cancel();
 			mConnectedThread = null;
 		}
 
-		// Cancel the accept thread because we only want to connect to one
+		// cancel the accept thread because we only want to connect to one
 		// device
 		if (mAcceptThread != null) {
 			mAcceptThread.cancel();
 			mAcceptThread = null;
 		}
 
-		// Start the thread to manage the connection and perform transmissions
+		// start the thread to manage the connection and perform transmissions
 		mConnectedThread = new ConnectedThread(socket);
 		mConnectedThread.start();
 
@@ -231,21 +228,23 @@ public class BluetoothGameEventListener {
 	}
 
 	/**
-	 * Write to the ConnectedThread in an unsynchronized manner
+	 * Write to the ConnectedThread without synchronization
 	 *
 	 * @param out The bytes to write
 	 * @see ConnectedThread#write(byte[])
 	 */
 	public void write(byte[] out) {
-		// Create temporary object
+		// create temporary object
 		ConnectedThread r;
-		// Synchronize a copy of the ConnectedThread
+
+		// synchronize a copy of the ConnectedThread
 		synchronized (this) {
 			if (mState != State.STATE_CONNECTED)
 				return;
 			r = mConnectedThread;
 		}
-		// Perform the write unsynchronized
+
+		// perform the write without synchronization
 		r.write(out);
 	}
 
@@ -260,7 +259,7 @@ public class BluetoothGameEventListener {
 	/**
 	 * Indicate that the connection was lost and notify the UI Activity.
 	 */
-	private void connectionLost(BluetoothDevice forDevice) {
+	private void connectionLost() {
 		setState(State.STATE_LOST_CONNECTION);
 		mHandler.onConnectionLost();
 	}
@@ -271,19 +270,20 @@ public class BluetoothGameEventListener {
 	 * until cancelled).
 	 */
 	private class AcceptThread extends Thread {
-		// The local server socket
+		// the local server socket
 		private final BluetoothServerSocket mmServerSocket;
 
 		public AcceptThread() {
 			BluetoothServerSocket tmp = null;
 
-			// Create a new listening server socket
+			// create a new listening server socket
 			try {
 				tmp = mAdapter
 						.listenUsingRfcommWithServiceRecord(NAME, DARK_KNIGHT_GAME_CONTROLLER_UUID);
 			} catch (IOException e) {
 				Log.e(TAG, "listen() failed", e);
 			}
+
 			mmServerSocket = tmp;
 		}
 
@@ -293,7 +293,7 @@ public class BluetoothGameEventListener {
 			setName("AcceptThread");
 			BluetoothSocket socket;
 
-			// Listen to the server socket if we're not connected
+			// listen to the server socket if we're not connected
 			while (mState != BluetoothGameEventListener.State.STATE_CONNECTED) {
 				try {
 					// This is a blocking call and will only return on a
@@ -304,7 +304,7 @@ public class BluetoothGameEventListener {
 					break;
 				}
 
-				// If a connection was accepted
+				// if a connection was accepted
 				if (socket != null) {
 					synchronized (BluetoothGameEventListener.this) {
 						switch (mState) {
@@ -429,7 +429,7 @@ public class BluetoothGameEventListener {
 			InputStream tmpIn = null;
 			OutputStream tmpOut = null;
 
-			// Get the BluetoothSocket input and output streams
+			// get the BluetoothSocket input and output streams
 			try {
 				tmpIn = socket.getInputStream();
 				tmpOut = socket.getOutputStream();
@@ -446,24 +446,24 @@ public class BluetoothGameEventListener {
 			byte[] buffer = new byte[1024];
 			int bytes;
 
-			// keep listening to the InputStream while connected
+			// keep listening to the input stream while connected
 			while (true) {
 				try {
 					// read from the input stream
 					bytes = mmInStream.read(buffer);
 
-					// Send the obtained bytes to the UI Activity
+					// send the obtained bytes to the UI Activity
 					mHandler.onMessageReceived(bytes, buffer);
 				} catch (IOException e) {
 					Log.e(TAG, "disconnected", e);
-					connectionLost(mmSocket.getRemoteDevice());
+					connectionLost();
 					break;
 				}
 			}
 		}
 
 		/**
-		 * Write to the connected OutStream.
+		 * Write to the connected output stream.
 		 *
 		 * @param buffer The bytes to write
 		 */

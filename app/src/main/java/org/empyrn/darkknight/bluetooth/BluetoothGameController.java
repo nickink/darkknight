@@ -217,54 +217,6 @@ public class BluetoothGameController extends AbstractGameController implements B
 		}
 	}
 
-//	@Override
-//	public void onBluetoothStateChange(@Nullable BluetoothDevice remoteDevice, int code) {
-//		if (getGui() == null) {
-//			return;
-//		}
-//
-//		switch (code) {
-//			case BluetoothGameEventListener.STATE_CONNECTED:
-//				if (getGameMode() != null) {
-//					getGui().dismissMessage();
-//
-//					startNewGame();
-//
-//					if (getGameMode() == GameMode.PLAYER_WHITE) {
-//						BluetoothGameController.this.sendMessage("iplaywhite");
-//					} else {
-//						BluetoothGameController.this.sendMessage("iplayblack");
-//					}
-//
-//					resume();
-//				} else {
-//					getGui().showMessage(mContext.getString(R.string.connected_to_bluetooth_device),
-//							Snackbar.LENGTH_INDEFINITE);
-//				}
-//
-//				break;
-//			case BluetoothGameEventListener.STATE_CONNECTING:
-//				getGui().showMessage(mContext.getString(R.string.connecting_to_bluetooth_device),
-//						Snackbar.LENGTH_INDEFINITE);
-//				break;
-//			case BluetoothGameEventListener.STATE_LISTEN:
-//				getGui().showMessage(mContext.getString(R.string.waiting_for_a_bluetooth_opponent_to_connect),
-//						Snackbar.LENGTH_INDEFINITE);
-//				break;
-//			case BluetoothGameEventListener.STATE_LOST_CONNECTION:
-//				if (isGameActive()) {
-//					getGui().showMessage(
-//							mContext.getString(R.string.bluetooth_connection_to_device_lost),
-//							Snackbar.LENGTH_INDEFINITE);
-//					pause();
-//				}
-//				break;
-//			case BluetoothGameEventListener.STATE_NONE:
-//				// mTitle.setText(R.string.title_not_connected);
-//				break;
-//		}
-//	}
-
 	public boolean isListening() {
 		return mBluetoothGameEventListener != null && mBluetoothGameEventListener.getState()
 				== BluetoothGameEventListener.State.STATE_LISTEN;
