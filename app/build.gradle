@@ -5,8 +5,10 @@ android {
     buildToolsVersion "23.0.3"
 
     defaultConfig {
+        versionCode 2
+        versionName "0.9"
         applicationId "org.empyrn.darkknight"
-        minSdkVersion 22
+        minSdkVersion 19
         targetSdkVersion 23
 
         ndk {
