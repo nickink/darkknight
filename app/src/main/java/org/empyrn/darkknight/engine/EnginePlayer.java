@@ -277,7 +277,7 @@ public class EnginePlayer {
 
 			if (shouldStopSearch && !stopSent) {
 				Log.i(getClass().getSimpleName(), this + " stopping search");
-				// if the engine should destroyGame, destroyGame it
+				// if the engine should stopGame, stopGame it
 				npp.writeLineToProcess("stop");
 				stopSent = true;
 			}
@@ -514,7 +514,7 @@ public class EnginePlayer {
 		Log.i(getClass().getSimpleName(), this + " received shouldStopSearch");
 		shouldStopSearch = true;
 
-		//TODO: remove this once "destroyGame" actually stops the engine from thinking
+		//TODO: remove this once "stopGame" actually stops the engine from thinking
 		EnginePlayer.shutdownEngine();
 	}
 }

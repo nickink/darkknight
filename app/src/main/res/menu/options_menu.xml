@@ -27,13 +27,12 @@
         app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/item_editboard"
-        android:title="@string/edit_board">
-    </item>
+        android:title="@string/edit_board"/>
     <item
         android:id="@+id/bluetooth_submenu"
+        android:icon="@drawable/ic_bluetooth_white_24dp"
         android:title="@string/bluetooth"
-        app:showAsAction="always"
-        android:icon="@drawable/ic_bluetooth_white_24dp">
+        app:showAsAction="always">
         <menu>
             <item
                 android:id="@+id/bluetooth_set_discoverable"
@@ -44,6 +43,9 @@
                 android:title="@string/create_bluetooth_game"/>
         </menu>
     </item>
+    <item
+        android:id="@+id/item_stop_game"
+        android:title="@string/stop_game" />
     <item
         android:id="@+id/item_load_pgn_file"
         android:title="@string/load_pgn"/>

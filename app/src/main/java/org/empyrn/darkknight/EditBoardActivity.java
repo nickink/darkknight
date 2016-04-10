@@ -28,7 +28,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class EditBoard extends Activity {
+public class EditBoardActivity extends Activity {
 	private EditableChessBoardView cb;
 	private TextView status;
 	private Button okButton;

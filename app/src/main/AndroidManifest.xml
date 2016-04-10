@@ -27,7 +27,7 @@
             android:name=".SettingsActivity"
             android:label="Preferences"/>
         <activity
-            android:name="EditBoard"
+            android:name=".EditBoardActivity"
             android:configChanges="orientation"
             android:label="Edit Board">
         </activity>
@@ -37,7 +37,7 @@
             android:label="Load PGN game">
         </activity>
         <activity
-            android:name="CPUWarning"
+            android:name=".CPUWarningActivity"
             android:label="CPU Warning">
         </activity>
         <activity

@@ -21,14 +21,30 @@ public interface GameController {
 
 	boolean hasGame();
 	boolean isGameActive();
-	void startNewGame();
 
 	byte[] getPersistableGameState();
 	void restoreGame(GameMode gameMode, byte[] state);
 
-	void pause();
-	void resume();
-	void destroyGame();
+	/**
+	 * Start a new game.
+	 */
+	void startGame();
+
+	/**
+	 * Resume the game.
+	 */
+	void resumeGame();
+
+	/**
+	 * Pause the game. Effectively means the game is still alive but the clock isn't running, although
+	 * this isn't implemented presently.
+	 */
+	void pauseGame();
+
+	/**
+	 * End the game.
+	 */
+	void stopGame();
 
 	String getPGN();
 

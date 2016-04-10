@@ -226,7 +226,7 @@ public class EngineController extends AbstractGameController implements GameCont
 	}
 
 	@Override
-	public final void startNewGame() {
+	public final void startGame() {
 		if (getGameMode() == null) {
 			throw new IllegalStateException("Game mode not set to start new game");
 		}
@@ -243,8 +243,10 @@ public class EngineController extends AbstractGameController implements GameCont
 		startNewGame(fenPgn);
 	}
 
-	private void startNewGame(String fenPgn) throws ChessParseError {
-		Log.i(getClass().getSimpleName(), "Starting new game with mode " + gameMode);
+	private void startNewGame(@Nullable String fenPgn) throws ChessParseError {
+		if (BuildConfig.DEBUG) {
+			Log.i(getClass().getSimpleName(), "Starting new game with mode " + gameMode);
+		}
 
 		if (getGameTextListener() == null) {
 			throw new IllegalStateException("Game text listener must be initialized");
@@ -273,7 +275,7 @@ public class EngineController extends AbstractGameController implements GameCont
 	}
 
 	@Override
-	public void resume() {
+	public void resumeGame() {
 		if (game == null) {
 			throw new IllegalStateException("Game hasn't been initialized yet");
 		} else if (analysisThread != null) {
@@ -295,14 +297,14 @@ public class EngineController extends AbstractGameController implements GameCont
 	private boolean guiPaused = false;
 
 	@Override
-	public void pause() {
+	public void pauseGame() {
 		setGuiPaused(true);
 		stopComputerThinking();
 		stopAnalysis();
 	}
 
 	@Override
-	public void destroyGame() {
+	public void stopGame() {
 		shutdownEngine();
 		gameMode = null;
 		game = null;
@@ -1061,7 +1063,7 @@ public class EngineController extends AbstractGameController implements GameCont
 		}
 
 		protected void stop() {
-			// destroyGame the search
+			// stopGame the search
 			enginePlayer.stopSearch();
 		}
 	}

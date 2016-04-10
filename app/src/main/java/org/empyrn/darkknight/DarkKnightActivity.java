@@ -406,7 +406,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		}
 
 		if (mGameController.hasGame() && !mGameController.getGameMode().analysisMode()) {
-			mGameController.resume();
+			mGameController.resumeGame();
 		}
 
 		updateNotification();
@@ -417,7 +417,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		super.onPause();
 
 		if (mGameController != null && mGameController.getGame() != null) {
-			mGameController.pause();
+			mGameController.pauseGame();
 			byte[] data = mGameController.getPersistableGameState();
 			Editor editor = settings.edit();
 			String dataStr = byteArrToString(data);
@@ -445,7 +445,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		if (isFinishing()) {
 			if (mGameController != null) {
-				mGameController.destroyGame();
+				mGameController.stopGame();
 			}
 
 			setNotification(false);
@@ -470,6 +470,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		final MenuItem forceMoveMenuItem = menu.findItem(R.id.item_force_move);
 		final MenuItem offerDrawMenuItem = menu.findItem(R.id.item_draw);
 		final MenuItem resignMenuItem = menu.findItem(R.id.item_resign);
+		final MenuItem stopGameMenuItem = menu.findItem(R.id.item_stop_game);
 		final MenuItem startAnalysisMenuItem = menu.findItem(R.id.item_start_analysis);
 		final MenuItem stopAnalysisMenuItem = menu.findItem(R.id.item_stop_analysis);
 		final MenuItem flipBoardMenuItem = menu.findItem(R.id.item_flip_board);
@@ -484,18 +485,23 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		final boolean isPlayerTurn = hasGame && mGameController.isPlayerTurn();
 
 		editBoardMenuItem.setEnabled(hasGame && !isUsingBluetooth);
-		resignMenuItem.setVisible(gameIsAlive);
+
 		forceMoveMenuItem.setEnabled(hasGame && !isUsingBluetooth
 				&& mGameController.isOpponentThinking());
 		offerDrawMenuItem.setEnabled(isPlayerTurn);
 		resignMenuItem.setEnabled(isPlayerTurn);
+		stopGameMenuItem.setEnabled(gameIsAlive);
 
 		final boolean canAnalyze = hasGame && !isUsingBluetooth
 				&& mGameController.getGameMode() != GameMode.ANALYSIS;
 		startAnalysisMenuItem.setVisible(canAnalyze);
-		stopAnalysisMenuItem.setVisible(!canAnalyze && !isUsingBluetooth);
-		flipBoardMenuItem.setVisible(!canAnalyze && !isUsingBluetooth);
+		stopAnalysisMenuItem.setVisible(hasGame && !canAnalyze && !isUsingBluetooth);
+		flipBoardMenuItem.setVisible(hasGame && !canAnalyze && !isUsingBluetooth);
 		resignMenuItem.setVisible(canResign && canAnalyze);
+
+		// stop game button is actually just a "feel good" resign button, although it can also
+		// be run while the computer is playing
+		stopGameMenuItem.setVisible(gameIsAlive && !(mGameController instanceof BluetoothGameController));
 
 		final boolean hasBluetooth = BluetoothAdapter.getDefaultAdapter() != null;
 
@@ -532,9 +538,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			Random r = new Random();
 
 			// throw the dice to determine which color to play
-			mGameController.destroyGame();
+			mGameController.stopGame();
 			mGameController.setGameMode(r.nextBoolean() ? GameMode.PLAYER_WHITE : GameMode.PLAYER_BLACK);
-			mGameController.startNewGame();
+			mGameController.startGame();
 		}
 
 		invalidateUi();
@@ -546,7 +552,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			return;
 		}
 
-		mGameController.destroyGame();
+		mGameController.stopGame();
 		mGameController = null;
 
 		resetChessBoardView();
@@ -600,7 +606,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				setBoardFlip();
 				return true;
 			case R.id.item_editboard: {
-				Intent i = new Intent(DarkKnightActivity.this, EditBoard.class);
+				Intent i = new Intent(DarkKnightActivity.this, EditBoardActivity.class);
 				i.setAction(mGameController.getGame().currPos().getFEN());
 				startActivityForResult(i, RESULT_EDITBOARD);
 				return true;
@@ -628,6 +634,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				if (mGameController.isPlayerTurn()) {
 					removeDialog(CONFIRM_RESIGN_DIALOG);
 					showDialog(CONFIRM_RESIGN_DIALOG);
+				}
+				return true;
+			case R.id.item_stop_game:
+				if (mGameController != null) {
+					mGameController.stopGame();
 				}
 				return true;
 			case R.id.item_load_pgn_file:
@@ -728,7 +739,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	private void loadPGN(String pgn) {
 		try {
-			mGameController.destroyGame();
+			mGameController.stopGame();
 			mGameController.setGameMode(GameMode.ANALYSIS);
 			mGameController.setGameTextListener(new PGNScreenText(PreferenceManager.getDefaultSharedPreferences(this),
 					new PGNOptions()));
@@ -798,7 +809,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					Snackbar.LENGTH_SHORT).show();
 		}
 
-		mGameController.resume();
+		mGameController.resumeGame();
 	}
 
 
@@ -813,7 +824,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				setBoardFlip();
 				invalidateUi();
 
-				mGameController.resume();
+				mGameController.resumeGame();
 			}
 		});
 	}
@@ -1351,7 +1362,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		mCurrentSnackbar.setAction(R.string.stop_waiting_for_opponent, new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				mGameController.destroyGame();
+				mGameController.stopGame();
 				invalidateUi();
 			}
 		});
@@ -1417,7 +1428,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		if (show) {
 			CharSequence contentTitle = getString(R.string.background_processing);
 			CharSequence contentText = getString(R.string.dark_knight_is_using_a_lot_of_cpu_power);
-			Intent notificationIntent = new Intent(this, CPUWarning.class);
+			Intent notificationIntent = new Intent(this, CPUWarningActivity.class);
 
 			PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
 					notificationIntent, 0);

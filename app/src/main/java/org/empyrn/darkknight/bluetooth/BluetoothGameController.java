@@ -128,7 +128,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	@Override
-	public void destroyGame() {
+	public void stopGame() {
 		stopBluetoothService();
 
 		if (getGui() != null) {
@@ -168,7 +168,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	@Override
-	public void startNewGame() {
+	public void startGame() {
 		if (BuildConfig.DEBUG) {
 			Log.i(getClass().getSimpleName(), "Starting new Bluetooth game with mode " + mGameMode);
 		}
@@ -191,7 +191,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	@Override
-	public void resume() {
+	public void resumeGame() {
 		if (getGui() != null) {
 			getGui().onGameResumed();
 		}
@@ -214,8 +214,9 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	@Override
-	public void pause() {
-
+	public void pauseGame() {
+		// not really possible to implement over Bluetooth, although a temporarily lost connection
+		// is equivalent
 	}
 
 	@Override
@@ -306,7 +307,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 			}
 
 			// begin a new game
-			startNewGame();
+			startGame();
 
 			return;
 		}
@@ -319,7 +320,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 		if (readMessage.equals("resign")) {
 			resignGame();
-			destroyGame();
+			stopGame();
 			return;
 		}
 
@@ -351,11 +352,11 @@ public class BluetoothGameController extends AbstractGameController implements B
 			} else {
 				Toast.makeText(mContext, R.string.opponent_attemped_to_cheat_so_the_game_was_ended,
 						Toast.LENGTH_SHORT).show();
-				destroyGame();
+				stopGame();
 			}
 		} else {
 			Toast.makeText(mContext, R.string.an_unrecognized_move_was_played, Toast.LENGTH_SHORT).show();
-			destroyGame();
+			stopGame();
 		}
 	}
 
@@ -366,7 +367,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 				getGui().dismissMessage();
 			}
 
-			startNewGame();
+			startGame();
 
 			if (getGameMode() == GameMode.PLAYER_WHITE) {
 				BluetoothGameController.this.sendMessage("iplaywhite");
@@ -374,7 +375,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 				BluetoothGameController.this.sendMessage("iplayblack");
 			}
 
-			resume();
+			resumeGame();
 		} else if (getGui() != null) {
 			getGui().onConnectedToOpponent(mContext.getString(R.string.connected_to_bluetooth_device, device.getName()));
 		}
@@ -402,7 +403,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 				getGui().showMessage(error, Snackbar.LENGTH_INDEFINITE);
 			}
 
-			pause();
+			pauseGame();
 		}
 	}
 }
