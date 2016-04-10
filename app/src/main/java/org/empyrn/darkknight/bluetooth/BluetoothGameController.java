@@ -4,19 +4,18 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.empyrn.darkknight.BuildConfig;
 import org.empyrn.darkknight.GameMode;
 import org.empyrn.darkknight.R;
 import org.empyrn.darkknight.gamelogic.AbstractGameController;
 import org.empyrn.darkknight.gamelogic.Game;
 import org.empyrn.darkknight.gamelogic.Move;
 import org.empyrn.darkknight.gamelogic.TextIO;
-
 
 public class BluetoothGameController extends AbstractGameController implements BluetoothMessageHandler.Callback {
 	private final Context mContext;
@@ -90,7 +89,9 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	public void setupBluetoothService() {
-		Log.d(getClass().getSimpleName(), "setupBluetoothService()");
+		if (BuildConfig.DEBUG) {
+			Log.d(getClass().getSimpleName(), "setupBluetoothService()");
+		}
 
 		BluetoothMessageHandler handler = new BluetoothMessageHandler();
 		handler.setCallback(this);
@@ -140,7 +141,9 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public void startNewGame() {
-		System.err.println("Starting new Bluetooth game with mode " + mGameMode);
+		if (BuildConfig.DEBUG) {
+			Log.i(getClass().getSimpleName(), "Starting new Bluetooth game with mode " + mGameMode);
+		}
 
 		if (mGameMode == null) {
 			throw new IllegalStateException("Must set a game mode to start a new game");
@@ -224,15 +227,18 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 					resume();
 				} else {
-					getGui().showSnackbar("Connected to device.", Snackbar.LENGTH_INDEFINITE);
+					getGui().showSnackbar(mContext.getString(R.string.connected_to_bluetooth_device),
+							Snackbar.LENGTH_INDEFINITE);
 				}
 
 				break;
 			case BluetoothGameEventListener.STATE_CONNECTING:
-				getGui().showSnackbar("Connecting to device...", Snackbar.LENGTH_INDEFINITE);
+				getGui().showSnackbar(mContext.getString(R.string.connecting_to_bluetooth_device),
+						Snackbar.LENGTH_INDEFINITE);
 				break;
 			case BluetoothGameEventListener.STATE_LISTEN:
-				getGui().showSnackbar("Waiting for a Bluetooth opponent to connect.", Snackbar.LENGTH_INDEFINITE);
+				getGui().showSnackbar(mContext.getString(R.string.waiting_for_a_bluetooth_opponent_to_connect),
+						Snackbar.LENGTH_INDEFINITE);
 				break;
 			case BluetoothGameEventListener.STATE_LOST_CONNECTION:
 				if (isGameActive()) {

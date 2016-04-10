@@ -321,4 +321,6 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="connection_to_bluetooth_device_failed">Connection to Bluetooth device failed.</string>
 	<string name="an_unrecognized_move_was_played">An unrecognized move was played.</string>
 	<string name="opponent_attemped_to_cheat_so_the_game_was_ended">Your opponent attempted to cheat, so the game was ended.</string>
+	<string name="waiting_for_a_bluetooth_opponent_to_connect">Waiting for a Bluetooth opponent to connect.</string>
+	<string name="connecting_to_bluetooth_device">Connecting to Bluetooth device...</string>
 </resources>
