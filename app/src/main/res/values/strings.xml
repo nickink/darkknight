@@ -218,9 +218,9 @@ Dark Knight can load games from PGN files. To use this feature:\n\
 GNU GPL v3\n\
 \n\
 <b>Developers</b>\n\
+* <i>Dark Knight</i> is a Material design fork of Droidfish by Nick Ink. Its source is available at GitHub.\n\
 * <i>Stockfish</i> is developed by Tord Romstad, Marco Costalba and Joona Kiiski.\n\
 * <i>Droidfish</i> is developed by Peter Österlund. (http://web.comhem.se/petero2home/droidfish/)\n\
-* <i>Dark Knight</i> is a Honeycomb fork of Droidfish. Its source is available at SourceForge.net.\n\
 </string>
 
 <string name="cpu_warning">\
