@@ -252,7 +252,7 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="en_passant_file">En Passant File</string>
 	<string name="move_counters">Move Counters</string>
 	<string name="paste_position">Paste Position</string>
-	<string name="edit_board">Edit Board</string>
+	<string name="edit_board">Edit board</string>
 	<string name="select_side_to_move_first">Select side to move first</string>
 	<string name="white">White</string>
 	<string name="black">Black</string>

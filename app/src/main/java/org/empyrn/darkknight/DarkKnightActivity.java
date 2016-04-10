@@ -446,6 +446,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		final MenuItem startAnalysisMenuItem = menu.findItem(R.id.item_start_analysis);
 		final MenuItem stopAnalysisMenuItem = menu.findItem(R.id.item_stop_analysis);
 		final MenuItem flipBoardMenuItem = menu.findItem(R.id.item_flip_board);
+		final MenuItem recreateActivityMenuItem = menu.findItem(R.id.recreate_activity);
+
+		recreateActivityMenuItem.setVisible(BuildConfig.DEBUG);
 
 		final boolean hasGame = mGameController != null && mGameController.getGame() != null;
 		final boolean isUsingBluetooth = mGameController instanceof BluetoothGameController;
@@ -632,6 +635,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				return true;
 			case R.id.item_about:
 				showDialog(ABOUT_DIALOG);
+				return true;
+			case R.id.recreate_activity:
+				recreate();
 				return true;
 		}
 

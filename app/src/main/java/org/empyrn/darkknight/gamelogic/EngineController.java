@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import org.empyrn.darkknight.BuildConfig;
 import org.empyrn.darkknight.DarkKnightActivity;
 import org.empyrn.darkknight.GUIInterface;
 import org.empyrn.darkknight.GameMode;
@@ -1018,8 +1019,10 @@ public class EngineController extends AbstractGameController implements GameCont
 						publishProgress(thinkingInfo);
 					}
 				}, ph.second, currPos, haveDrawOffer);
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (InterruptedException e) {
+				if (BuildConfig.DEBUG) {
+					e.printStackTrace();
+				}
 			}
 
 			// set the analysis thread to null here since otherwise waiting methods will never allow

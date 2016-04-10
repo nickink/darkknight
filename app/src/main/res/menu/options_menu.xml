@@ -63,4 +63,7 @@
     <item
         android:id="@+id/item_about"
         android:title="@string/about_help"/>
+    <item
+        android:id="@+id/recreate_activity"
+        android:title="Recreate activity"/>
 </menu>
