@@ -217,6 +217,31 @@ public class BluetoothGameController extends AbstractGameController implements B
 		}
 	}
 
+	@Override
+	public void acceptDrawOffer() {
+		if (getGame() == null) {
+			throw new IllegalStateException("Game is not initialized");
+		}
+
+		if (getGame().getGameStatus() == Game.Status.ALIVE) {
+			getGame().processString("draw accept");
+			sendMessage("draw accept");
+			onMoveMade();
+		}
+	}
+
+	@Override
+	public void declineDrawOffer() {
+		if (getGame() == null) {
+			throw new IllegalStateException("Game is not initialized");
+		}
+
+		if (getGame().getGameStatus() == Game.Status.ALIVE) {
+			sendMessage("draw decline");
+			onMoveMade();
+		}
+	}
+
 	public boolean isListening() {
 		return mBluetoothGameEventListener != null && mBluetoothGameEventListener.getState()
 				== BluetoothGameEventListener.State.STATE_LISTEN;
@@ -284,6 +309,25 @@ public class BluetoothGameController extends AbstractGameController implements B
 			return;
 		}
 
+		if (getGui() != null) {
+			if (readMessage.equals("draw decline")) {
+				getGui().showMessage(mContext.getString(R.string.draw_offer_declined), Snackbar.LENGTH_LONG);
+				return;
+			}
+		}
+
+		if (readMessage.startsWith("draw offer ")) {
+			game.processString(readMessage);
+
+			Move m = TextIO.UCIstringToMove(readMessage.substring("draw offer ".length()));
+
+			if (getGui() != null) {
+				getGui().onOpponentOfferDraw(m);
+			}
+
+			return;
+		}
+
 		// make the move from Bluetooth
 		Move m = TextIO.UCIstringToMove(readMessage);
 
@@ -301,11 +345,12 @@ public class BluetoothGameController extends AbstractGameController implements B
 		}
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	@Override
 	public void onBluetoothDeviceConnected(BluetoothDevice device) {
 		if (getGameMode() != null) {
-			getGui().dismissMessage();
+			if (getGui() != null) {
+				getGui().dismissMessage();
+			}
 
 			startNewGame();
 
@@ -316,7 +361,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 			}
 
 			resume();
-		} else {
+		} else if (getGui() != null) {
 			getGui().onConnectedToOpponent(mContext.getString(R.string.connected_to_bluetooth_device, device.getName()));
 		}
 	}

@@ -749,6 +749,16 @@ public class EngineController extends AbstractGameController implements GameCont
 	}
 
 	@Override
+	public void acceptDrawOffer() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void declineDrawOffer() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	protected String getStatusText() {
 		if (game == null) {
 			return null;

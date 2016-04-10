@@ -1338,6 +1338,28 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		mStatusView.setText(hint);
 	}
 
+	@Override
+	public void onOpponentOfferDraw(Move m) {
+		onMoveMade(m);
+		mCurrentSnackbar = Snackbar.make(mCoordinatorView, R.string.opponent_has_offered_a_draw,
+				Snackbar.LENGTH_INDEFINITE);
+		mCurrentSnackbar.setAction(R.string.accept_draw, new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						mGameController.acceptDrawOffer();
+					}
+				});
+		mCurrentSnackbar.setCallback(new Snackbar.Callback() {
+					@Override
+					public void onDismissed(Snackbar snackbar, @DismissEvent int event) {
+						if (event == DISMISS_EVENT_SWIPE && mGameController != null) {
+							mGameController.declineDrawOffer();
+						}
+					}
+				});
+		mCurrentSnackbar.show();
+	}
+
 	/**
 	 * Decide if user should be warned about heavy CPU usage.
 	 */

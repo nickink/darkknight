@@ -347,4 +347,7 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="game_result_resign_white">White resigns</string>
 	<string name="game_result_resign_black">Black resigns.</string>
 	<string name="game_result_unknown">Result unknown</string>
+	<string name="opponent_has_offered_a_draw">Your opponent has offered a draw. Accept, or swipe to decline.</string>
+	<string name="accept_draw">Accept</string>
+	<string name="draw_offer_declined">Draw offer declined.</string>
 </resources>

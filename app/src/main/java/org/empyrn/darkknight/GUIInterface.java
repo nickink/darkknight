@@ -75,6 +75,8 @@ public interface GUIInterface {
 
 	void onConnectedToOpponent(CharSequence hint);
 
+	void onOpponentOfferDraw(Move m);
+
 
 	@Deprecated
 	void showMessage(CharSequence message, int duration);

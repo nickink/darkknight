@@ -39,6 +39,8 @@ public interface GameController {
 	void setPromotionChoice(PromotionPiece choice);
 
 	boolean claimDrawIfPossible();
+	void acceptDrawOffer();
+	void declineDrawOffer();
 	void resignGame();
 
 	boolean isPlayerTurn();
