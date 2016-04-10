@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -67,8 +68,8 @@ import java.util.Random;
 
 /**
  * @author nick
- *
- * Main activity for Dark Knight.
+ *         <p/>
+ *         Main activity for Dark Knight.
  */
 public class DarkKnightActivity extends AppCompatActivity implements GUIInterface {
 
@@ -113,10 +114,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			+ File.separator + "DarkKnight" + File.separator + "pgn";
 
 	private long lastVisibleMillis;                 // Time when GUI became invisible. 0 if
-													// currently visible.
+	// currently visible.
 
 	private long lastComputationMillis;             // Time when engine last showed that it
-													// was computing.
+	// was computing.
 
 	private boolean canResign;
 
@@ -127,6 +128,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		if (getResources().getBoolean(R.bool.portrait_only)) {
+			// only use portrait for phones for now
+			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		}
 
 		settings = PreferenceManager.getDefaultSharedPreferences(this);
 		settings.registerOnSharedPreferenceChangeListener(new OnSharedPreferenceChangeListener() {
@@ -271,6 +277,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			}
 		});
 
+		// hide FAB at the start
+		fab.hide();
+
 		thinkingInfoView = (TextView) findViewById(R.id.thinking_info);
 
 		mStatusView = (TextView) findViewById(R.id.status);
@@ -361,7 +370,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			mChessBoardView.clearSelection();
 		}
 	}
-
 
 
 	private void enableChessBoard() {
@@ -1364,19 +1372,19 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		mCurrentSnackbar = Snackbar.make(mCoordinatorView, R.string.opponent_has_offered_a_draw,
 				Snackbar.LENGTH_INDEFINITE);
 		mCurrentSnackbar.setAction(R.string.accept_draw, new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						mGameController.acceptDrawOffer();
-					}
-				});
+			@Override
+			public void onClick(View v) {
+				mGameController.acceptDrawOffer();
+			}
+		});
 		mCurrentSnackbar.setCallback(new Snackbar.Callback() {
-					@Override
-					public void onDismissed(Snackbar snackbar, @DismissEvent int event) {
-						if (event == DISMISS_EVENT_SWIPE && mGameController != null) {
-							mGameController.declineDrawOffer();
-						}
-					}
-				});
+			@Override
+			public void onDismissed(Snackbar snackbar, @DismissEvent int event) {
+				if (event == DISMISS_EVENT_SWIPE && mGameController != null) {
+					mGameController.declineDrawOffer();
+				}
+			}
+		});
 		mCurrentSnackbar.show();
 	}
 
@@ -1418,7 +1426,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					new NotificationCompat.Builder(this)
 							.setContentTitle(contentTitle)
 							.setContentText(contentText)
-					.setContentIntent(contentIntent);
+							.setContentIntent(contentIntent);
 			mNotificationManager.notify(cpuUsage, mBuilder.build());
 		} else {
 			mNotificationManager.cancel(cpuUsage);
