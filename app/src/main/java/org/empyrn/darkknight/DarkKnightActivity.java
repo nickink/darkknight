@@ -148,7 +148,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			}
 		} else {
 			mGameController = BluetoothGameController.getLastInstance(this);
-			((BluetoothGameController) mGameController).setDiscoverable(this);
 		}
 
 		if (mGameController.getGameTextListener() == null) {
