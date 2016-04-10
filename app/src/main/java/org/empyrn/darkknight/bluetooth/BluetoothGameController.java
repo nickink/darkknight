@@ -141,6 +141,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	@Override
 	public boolean isGameActive() {
 		return super.isGameActive()
+				&& mBluetoothGameEventListener != null
 				&& mBluetoothGameEventListener.getState() == BluetoothGameEventListener.State.STATE_CONNECTED;
 	}
 
@@ -169,7 +170,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 		// check that there's actually something to send
 		if (message.length() > 0) {
-			// Get the message bytes and tell the BluetoothGameEventListener to write
+			// get the message bytes and tell the BluetoothGameEventListener to write
 			byte[] dataToSend = message.getBytes();
 			mBluetoothGameEventListener.write(dataToSend);
 		}

@@ -369,6 +369,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			mChessBoardView.clearMoveHints();
 			mChessBoardView.clearSelection();
 		}
+
+		mChessBoardView.setEnabled(mGameController != null && mGameController.isGameActive());
 	}
 
 
@@ -508,7 +510,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		final MenuItem bluetoothSubmenu = menu.findItem(R.id.bluetooth_submenu);
 		bluetoothSubmenu.setVisible(hasBluetooth);
 		if (hasBluetooth) {
-			bluetoothSubmenu.setIcon((mGameController instanceof BluetoothGameController && gameIsAlive) ?
+			final boolean isConnected = isUsingBluetooth && gameIsAlive && mGameController.isGameActive();
+			bluetoothSubmenu.setIcon(isConnected ?
 					ContextCompat.getDrawable(this, R.drawable.ic_bluetooth_connected_white_24dp) :
 					ContextCompat.getDrawable(this, R.drawable.ic_bluetooth_white_24dp));
 
@@ -524,7 +527,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			bluetoothDiscoverableMenuItem.setChecked(isUsingBluetooth && isBluetoothDiscoverable
 					&& isListeningOnBluetooth);
 
-			final boolean isConnected = isUsingBluetooth && gameIsAlive && mGameController.isGameActive();
 			bluetoothDiscoverableMenuItem.setEnabled(!isConnected);
 
 			final MenuItem disconnectMenuItem = menu.findItem(R.id.bluetooth_disconnect);
@@ -678,6 +680,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				return true;
 			case R.id.bluetooth_disconnect:
 				mGameController.stopGame();
+				invalidateUi();
 				break;
 			case R.id.item_about:
 				showDialog(ABOUT_DIALOG);
