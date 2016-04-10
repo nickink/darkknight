@@ -326,6 +326,7 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="not_connected_to_another_player">Not connected to another player.</string>
 
 	<string name="new_game_started_as_kind">New game started as %1$s.</string>
+	<string name="game_over">Game over! %1$s</string>
     <string name="game_mode_analysis">analysis</string>
     <string name="game_mode_two_players">two players</string>
     <string name="game_mode_unknown">unknown</string>
@@ -335,4 +336,15 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="dark_knight_download_pgn_activity_label">Dark Knight: Download PGN</string>
 	<string name="pgn_directory_is_inaccessible">PGN directory is inaccessible.</string>
 	<string name="stop_waiting_for_opponent">Stop</string>
+	<string name="game_result_white_mate">White mates!</string>
+	<string name="game_result_black_mate">Black mates!</string>
+	<string name="game_result_white_stalmate">White is stalmated.</string>
+	<string name="game_result_black_stalmate">Black is stalmated</string>
+	<string name="game_result_draw_rep">Draw by threefold repetition</string>
+	<string name="game_result_draw_50">Draw by 50 move rule.</string>
+	<string name="game_result_draw_no_mate">Draw by impossibility of check mate.</string>
+	<string name="game_result_draw_agree">Draw by agreement.</string>
+	<string name="game_result_resign_white">White resigns</string>
+	<string name="game_result_resign_black">Black resigns.</string>
+	<string name="game_result_unknown">Result unknown</string>
 </resources>

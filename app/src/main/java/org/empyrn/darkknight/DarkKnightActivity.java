@@ -761,7 +761,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		if (mGameController.getGameMode() != GameMode.ANALYSIS) {
 			Snackbar.make(mCoordinatorView, getString(R.string.new_game_started_as_kind,
-					getStringForGameMode(mGameController.getGameMode())), Snackbar.LENGTH_SHORT).show();
+					getStringForGameMode(mGameController.getGameMode())),
+					Snackbar.LENGTH_SHORT).show();
 		}
 
 		mGameController.resume();
@@ -1270,9 +1271,37 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		invalidateUi();
 	}
 
+	private String getStringFromGameStatus(Game.Status status) {
+		switch (status) {
+			case WHITE_MATE:
+				return getString(R.string.game_result_white_mate);
+			case BLACK_MATE:
+				return getString(R.string.game_result_black_mate);
+			case WHITE_STALEMATE:
+				return getString(R.string.game_result_white_stalmate);
+			case BLACK_STALEMATE:
+				return getString(R.string.game_result_black_stalmate);
+			case DRAW_REP:
+				return getString(R.string.game_result_draw_rep);
+			case DRAW_50:
+				return getString(R.string.game_result_draw_50);
+			case DRAW_NO_MATE:
+				return getString(R.string.game_result_draw_no_mate);
+			case DRAW_AGREE:
+				return getString(R.string.game_result_draw_agree);
+			case RESIGN_WHITE:
+				return getString(R.string.game_result_resign_white);
+			case RESIGN_BLACK:
+				return getString(R.string.game_result_resign_black);
+			default:
+				return getString(R.string.game_result_unknown);
+		}
+	}
+
 	@Override
 	public void onGameOver(Game.Status endState) {
-		Snackbar.make(mCoordinatorView, "Game over! " + endState, Snackbar.LENGTH_SHORT).show();
+		Snackbar.make(mCoordinatorView, getString(R.string.game_over, getStringFromGameStatus(endState)),
+				Snackbar.LENGTH_SHORT).show();
 
 		mChessBoardView.clearSelection();
 		mChessBoardView.setPosition(mGameController.getGame().currPos());
