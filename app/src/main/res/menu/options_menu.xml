@@ -41,6 +41,9 @@
             <item
                 android:id="@+id/bluetooth_create"
                 android:title="@string/create_bluetooth_game"/>
+            <item
+                android:id="@+id/bluetooth_disconnect"
+                android:title="@string/bluetooth_disconnect" />
         </menu>
     </item>
     <item

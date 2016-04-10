@@ -4,12 +4,14 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.net.NetworkInfo;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.widget.Toast;
 
 import org.empyrn.darkknight.BuildConfig;
+import org.empyrn.darkknight.GUIInterface;
 import org.empyrn.darkknight.GameMode;
 import org.empyrn.darkknight.R;
 import org.empyrn.darkknight.gamelogic.AbstractGameController;
@@ -136,6 +138,12 @@ public class BluetoothGameController extends AbstractGameController implements B
 		}
 	}
 
+	@Override
+	public boolean isGameActive() {
+		return super.isGameActive()
+				&& mBluetoothGameEventListener.getState() == BluetoothGameEventListener.State.STATE_CONNECTED;
+	}
+
 	public void stopBluetoothService() {
 		mLastInstance = null;
 
@@ -187,7 +195,21 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public void restoreGame(GameMode gameMode, byte[] state) {
-		// not supported yet, so do nothing
+		if (getGame() == null) {
+			return;
+		}
+
+		// the game state can't actually be restored directly from Bluetooth, but if this is a
+		// "last instance" Bluetooth controller, it can be resumed at least
+
+		updateMoveList();
+
+		GUIInterface guiInterface = getGui();
+		if (guiInterface != null) {
+			guiInterface.onGameRestored();
+		} else {
+			Log.w(getClass().getSimpleName(), "Restored game without a GUI -- this is not recommended");
+		}
 	}
 
 	@Override

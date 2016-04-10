@@ -523,7 +523,12 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					== BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
 			bluetoothDiscoverableMenuItem.setChecked(isUsingBluetooth && isBluetoothDiscoverable
 					&& isListeningOnBluetooth);
-			bluetoothDiscoverableMenuItem.setEnabled(!(isUsingBluetooth && gameIsAlive));
+
+			final boolean isConnected = isUsingBluetooth && gameIsAlive && mGameController.isGameActive();
+			bluetoothDiscoverableMenuItem.setEnabled(!isConnected);
+
+			final MenuItem disconnectMenuItem = menu.findItem(R.id.bluetooth_disconnect);
+			disconnectMenuItem.setVisible(isConnected);
 		}
 
 		return true;
@@ -671,6 +676,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				ActivityCompat.invalidateOptionsMenu(this);
 
 				return true;
+			case R.id.bluetooth_disconnect:
+				mGameController.stopGame();
+				break;
 			case R.id.item_about:
 				showDialog(ABOUT_DIALOG);
 				return true;
@@ -1375,6 +1383,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	public void onConnectedToOpponent(CharSequence hint) {
 		mCurrentSnackbar.dismiss();
 		mStatusView.setText(hint);
+
+		// hide the FAB since presumably the game is about to start
+		fab.hide();
 	}
 
 	@Override
