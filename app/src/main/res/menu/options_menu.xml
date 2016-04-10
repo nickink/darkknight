@@ -27,7 +27,6 @@
         app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/item_editboard"
-        android:icon="@android:drawable/ic_menu_edit"
         android:title="@string/edit_board">
     </item>
     <item
@@ -43,9 +42,6 @@
             <item
                 android:id="@+id/bluetooth_create"
                 android:title="@string/create_bluetooth_game"/>
-            <item
-                android:id="@+id/bluetooth_reset"
-                android:title="@string/bluetooth_reset"/>
         </menu>
     </item>
     <item
@@ -64,9 +60,6 @@
     <item
         android:id="@+id/item_force_move"
         android:title="@string/force_computer_move"/>
-    <!--<item-->
-        <!--android:id="@+id/select_book"-->
-        <!--android:title="@string/select_opening_book"/>-->
     <item
         android:id="@+id/item_about"
         android:title="@string/about_help"/>

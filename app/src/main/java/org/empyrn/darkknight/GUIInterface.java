@@ -59,7 +59,6 @@ public interface GUIInterface {
 	/**
 	 * Ask what to promote a pawn to. Should call setPromotionChoice() when done.
 	 */
-	@Deprecated
 	void requestPromotePiece();
 
 	/**
@@ -72,8 +71,14 @@ public interface GUIInterface {
 	 */
 	void setRemainingTime(long wTime, long bTime, long nextUpdate);
 
+	void onWaitingForOpponent(CharSequence hint);
 
-	void showSnackbar(CharSequence message, int duration);
+	void onConnectedToOpponent(CharSequence hint);
 
-	void dismissSnackbar();
+
+	@Deprecated
+	void showMessage(CharSequence message, int duration);
+
+	@Deprecated
+	void dismissMessage();
 }

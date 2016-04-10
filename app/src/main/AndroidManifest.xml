@@ -47,7 +47,7 @@
         </activity>
         <activity
             android:name=".PGNDownloadActivity"
-            android:label="Dark Knight: Download PGN"
+            android:label="@string/dark_knight_download_pgn_activity_label"
             android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>

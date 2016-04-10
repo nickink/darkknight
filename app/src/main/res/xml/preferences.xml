@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
 	xmlns:android="http://schemas.android.com/apk/res/android">
-	<PreferenceCategory
-		android:title="Playing Options">
-		<ListPreference
-			android:key="gameMode"
-			android:title="Game Mode"
-			android:summary="Select opponent, analysis mode or computer match"
-			android:entryValues="@array/game_mode_values"
-			android:entries="@array/game_mode_texts"
-			android:defaultValue="1">
-		</ListPreference>
-	</PreferenceCategory>
+	<!--<PreferenceCategory-->
+		<!--android:title="Playing Options">-->
+		<!--<ListPreference-->
+			<!--android:key="gameMode"-->
+			<!--android:title="Game Mode"-->
+			<!--android:summary="Select opponent, analysis mode or computer match"-->
+			<!--android:entryValues="@array/game_mode_values"-->
+			<!--android:entries="@array/game_mode_texts"-->
+			<!--android:defaultValue="1">-->
+		<!--</ListPreference>-->
+	<!--</PreferenceCategory>-->
 	<PreferenceCategory
 		android:title="Difficulty">
 		<ListPreference

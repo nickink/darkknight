@@ -65,6 +65,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * @author nick
+ *
+ * Main activity for Dark Knight.
+ */
 public class DarkKnightActivity extends AppCompatActivity implements GUIInterface {
 
 	static private final int RESULT_EDITBOARD = 0;
@@ -79,17 +84,16 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	private boolean mShowThinking;
 	private boolean mShowBookHints;
 	private int maxNumArrows;
-	//private boolean autoSwapSides;
 	private boolean oneTouchMoves;
 
 	private CoordinatorLayout mCoordinatorView;
 	private ChessBoardView mChessBoardView;
 	private ImageButton mPreviousMoveButton;
 	private ImageButton mNextMoveButton;
-	private TextView statusView;
+	private TextView mStatusView;
 	private ScrollView moveListScrollView;
 	private TextView moveListView;
-	private Snackbar thinkingSnackbar;
+	private Snackbar mCurrentSnackbar;
 	private FloatingActionButton fab;
 	private TextView thinkingInfoView;
 
@@ -250,10 +254,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		thinkingInfoView = (TextView) findViewById(R.id.thinking_info);
 
-		statusView = (TextView) findViewById(R.id.status);
+		mStatusView = (TextView) findViewById(R.id.status);
 		moveListScrollView = (ScrollView) findViewById(R.id.move_list_scroll_view);
 		moveListView = (TextView) findViewById(R.id.moveList);
-		statusView.setFocusable(false);
+		mStatusView.setFocusable(false);
 		moveListScrollView.setFocusable(false);
 		moveListView.setFocusable(false);
 
@@ -418,11 +422,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			}
 
 			setNotification(false);
-
-//			if (bGameCtrl != null) {
-//				bGameCtrl.stopBluetoothService();
-//				bGameCtrl = null;
-//			}
 		}
 
 		if (mGameController != null) {
@@ -472,16 +471,23 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		final MenuItem bluetoothSubmenu = menu.findItem(R.id.bluetooth_submenu);
 		bluetoothSubmenu.setVisible(hasBluetooth);
-		bluetoothSubmenu.setEnabled(canAnalyze || (isUsingBluetooth && !mGameController.isGameActive()));
 		if (hasBluetooth) {
+			bluetoothSubmenu.setIcon((mGameController instanceof BluetoothGameController && gameIsAlive) ?
+					ContextCompat.getDrawable(this, R.drawable.ic_bluetooth_connected_white_24dp) :
+					ContextCompat.getDrawable(this, R.drawable.ic_bluetooth_white_24dp));
+
 			final MenuItem startBluetoothGame = menu.findItem(R.id.bluetooth_create);
 			startBluetoothGame.setEnabled(mGameController instanceof BluetoothGameController);
 
 			final MenuItem bluetoothDiscoverableMenuItem = menu.findItem(R.id.bluetooth_set_discoverable);
 
+			final boolean isListeningOnBluetooth = isUsingBluetooth
+					&& ((BluetoothGameController) mGameController).isListening();
 			final boolean isBluetoothDiscoverable = BluetoothAdapter.getDefaultAdapter().getScanMode()
 					== BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
-			bluetoothDiscoverableMenuItem.setChecked(isUsingBluetooth && isBluetoothDiscoverable);
+			bluetoothDiscoverableMenuItem.setChecked(isUsingBluetooth && isBluetoothDiscoverable
+					&& isListeningOnBluetooth);
+			bluetoothDiscoverableMenuItem.setEnabled(!(isUsingBluetooth && gameIsAlive));
 		}
 
 		return true;
@@ -574,15 +580,13 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				startActivityForResult(i, RESULT_SETTINGS);
 				return true;
 			}
-			case R.id.item_goto_move: {
+			case R.id.item_goto_move:
 				showDialog(SELECT_MOVE_DIALOG);
 				return true;
-			}
-			case R.id.item_force_move: {
+			case R.id.item_force_move:
 				((EngineController) mGameController).stopSearch();
 				return true;
-			}
-			case R.id.item_draw: {
+			case R.id.item_draw:
 				if (mGameController.isPlayerTurn()) {
 					if (!mGameController.claimDrawIfPossible()) {
 						Toast.makeText(getApplicationContext(), R.string.offer_draw,
@@ -590,18 +594,12 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					}
 				}
 				return true;
-			}
-			case R.id.item_resign: {
+			case R.id.item_resign:
 				if (mGameController.isPlayerTurn()) {
 					removeDialog(CONFIRM_RESIGN_DIALOG);
 					showDialog(CONFIRM_RESIGN_DIALOG);
 				}
 				return true;
-			}
-//			case R.id.select_book:
-//				removeDialog(SELECT_BOOK_DIALOG);
-//				showDialog(SELECT_BOOK_DIALOG);
-//				return true;
 			case R.id.item_load_pgn_file:
 				removeDialog(SELECT_PGN_FILE_DIALOG);
 
@@ -632,11 +630,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				ActivityCompat.invalidateOptionsMenu(this);
 
 				return true;
-//			case R.id.bluetooth_reset:
-//				if (bGameCtrl != null) {
-//					bGameCtrl.reset();
-//				}
-//				return true;
 			case R.id.item_about:
 				showDialog(ABOUT_DIALOG);
 				return true;
@@ -667,14 +660,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				}
 				break;
 			case REQUEST_CONNECT_DEVICE:
-//				if (!(mGameController instanceof BluetoothGameController)) {
-//					Toast.makeText(getApplicationContext(),
-//							"Bluetooth mode is not enabled", Toast.LENGTH_SHORT)
-//							.show();
-//					return;
-//				}
-
-				// When DeviceListActivity returns with a device to connect
+				// when DeviceListActivity returns with a device to connect
 				if (resultCode == Activity.RESULT_OK) {
 					destroyGame();
 
@@ -686,7 +672,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 							new PGNOptions()));
 					mGameController = bGameCtrl;
 
-					// Get the device MAC address
+					// get the device MAC address
 					String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
 					bGameCtrl.connectToDevice(address);
 				}
@@ -698,7 +684,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					((BluetoothGameController) mGameController).setupBluetoothService();
 				} else {
 					// Bluetooth not enabled or an error occurred
-					Toast.makeText(this, R.string.bt_not_enabled_leaving, Toast.LENGTH_LONG).show();
+					Snackbar.make(mCoordinatorView, R.string.bt_not_enabled_leaving,
+							Snackbar.LENGTH_LONG).show();
 				}
 				break;
 		}
@@ -742,7 +729,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	@Override
 	public void setStatusString(String str) {
-		statusView.setText(str);
+		mStatusView.setText(str);
 	}
 
 	private PGNScreenText getPGNTokenReceiver() {
@@ -809,19 +796,19 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	}
 
 	@Override
-	public void showSnackbar(CharSequence message, int duration) {
-		if (thinkingSnackbar == null || thinkingSnackbar.getDuration() != duration) {
-			thinkingSnackbar = Snackbar.make(mCoordinatorView, message, duration);
+	public void showMessage(CharSequence message, int duration) {
+		if (mCurrentSnackbar == null || mCurrentSnackbar.getDuration() != duration) {
+			mCurrentSnackbar = Snackbar.make(mCoordinatorView, message, duration);
 		} else {
-			thinkingSnackbar.setText(message);
+			mCurrentSnackbar.setText(message);
 		}
 
-		thinkingSnackbar.show();
+		mCurrentSnackbar.show();
 	}
 
 	@Override
-	public void dismissSnackbar() {
-		thinkingSnackbar.dismiss();
+	public void dismissMessage() {
+		mCurrentSnackbar.dismiss();
 	}
 
 	@Override
@@ -1285,7 +1272,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	@Override
 	public void onGameOver(Game.Status endState) {
-		Snackbar.make(mCoordinatorView, "Game over! " + endState, Toast.LENGTH_SHORT).show();
+		Snackbar.make(mCoordinatorView, "Game over! " + endState, Snackbar.LENGTH_SHORT).show();
 
 		mChessBoardView.clearSelection();
 		mChessBoardView.setPosition(mGameController.getGame().currPos());
@@ -1297,6 +1284,29 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		canResign = false;
 
 		ActivityCompat.invalidateOptionsMenu(this);
+	}
+
+	@Override
+	public void onWaitingForOpponent(CharSequence hint) {
+		mStatusView.setText(null);
+
+		mCurrentSnackbar = Snackbar.make(mCoordinatorView, hint, Snackbar.LENGTH_INDEFINITE);
+		mCurrentSnackbar.setAction(R.string.stop_waiting_for_opponent, new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mGameController.destroyGame();
+				invalidateUi();
+			}
+		});
+		mCurrentSnackbar.show();
+
+		invalidateUi();
+	}
+
+	@Override
+	public void onConnectedToOpponent(CharSequence hint) {
+		mCurrentSnackbar.dismiss();
+		mStatusView.setText(hint);
 	}
 
 	/**

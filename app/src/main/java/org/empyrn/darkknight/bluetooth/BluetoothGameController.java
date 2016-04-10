@@ -26,8 +26,6 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	private GameMode mGameMode;
 
-	private int mCurrentState;
-
 
 	public BluetoothGameController(Context context) {
 		this(context, BluetoothAdapter.getDefaultAdapter());
@@ -53,7 +51,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 					BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
 			context.startActivity(discoverableIntent);
 		} else if (getGui() != null) {
-			getGui().showSnackbar(mContext.getString(
+			getGui().showMessage(mContext.getString(
 					R.string.this_device_is_already_discoverable), Snackbar.LENGTH_SHORT);
 		} else {
 			Toast.makeText(mContext, mContext.getString(
@@ -69,7 +67,18 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	protected String getStatusText() {
-		return null;
+		if (game == null) {
+			return null;
+		}
+
+		String str = Integer.valueOf(game.currPos().fullMoveCounter).toString();
+		str += game.currPos().whiteMove ? ". White's move" : "... Black's move";
+
+		if (game.getGameStatus() != Game.Status.ALIVE) {
+			str = game.getGameStateString();
+		}
+
+		return str;
 	}
 
 	@Override
@@ -217,7 +226,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 //		switch (code) {
 //			case BluetoothGameEventListener.STATE_CONNECTED:
 //				if (getGameMode() != null) {
-//					getGui().dismissSnackbar();
+//					getGui().dismissMessage();
 //
 //					startNewGame();
 //
@@ -229,22 +238,22 @@ public class BluetoothGameController extends AbstractGameController implements B
 //
 //					resume();
 //				} else {
-//					getGui().showSnackbar(mContext.getString(R.string.connected_to_bluetooth_device),
+//					getGui().showMessage(mContext.getString(R.string.connected_to_bluetooth_device),
 //							Snackbar.LENGTH_INDEFINITE);
 //				}
 //
 //				break;
 //			case BluetoothGameEventListener.STATE_CONNECTING:
-//				getGui().showSnackbar(mContext.getString(R.string.connecting_to_bluetooth_device),
+//				getGui().showMessage(mContext.getString(R.string.connecting_to_bluetooth_device),
 //						Snackbar.LENGTH_INDEFINITE);
 //				break;
 //			case BluetoothGameEventListener.STATE_LISTEN:
-//				getGui().showSnackbar(mContext.getString(R.string.waiting_for_a_bluetooth_opponent_to_connect),
+//				getGui().showMessage(mContext.getString(R.string.waiting_for_a_bluetooth_opponent_to_connect),
 //						Snackbar.LENGTH_INDEFINITE);
 //				break;
 //			case BluetoothGameEventListener.STATE_LOST_CONNECTION:
 //				if (isGameActive()) {
-//					getGui().showSnackbar(
+//					getGui().showMessage(
 //							mContext.getString(R.string.bluetooth_connection_to_device_lost),
 //							Snackbar.LENGTH_INDEFINITE);
 //					pause();
@@ -256,14 +265,18 @@ public class BluetoothGameController extends AbstractGameController implements B
 //		}
 //	}
 
+	public boolean isListening() {
+		return mBluetoothGameEventListener != null && mBluetoothGameEventListener.getState()
+				== BluetoothGameEventListener.State.STATE_LISTEN;
+	}
+
 	@Override
 	public void onBluetoothListening() {
 		if (getGui() == null) {
 			return;
 		}
 
-		getGui().showSnackbar(mContext.getString(R.string.waiting_for_a_bluetooth_opponent_to_connect),
-				Snackbar.LENGTH_INDEFINITE);
+		getGui().onWaitingForOpponent(mContext.getString(R.string.waiting_for_a_bluetooth_opponent_to_connect));
 	}
 
 	@Override
@@ -277,7 +290,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 			return;
 		}
 
-		getGui().showSnackbar(mContext.getString(R.string.connecting_to_bluetooth_device, device.getName()),
+		getGui().showMessage(mContext.getString(R.string.connecting_to_bluetooth_device, device.getName()),
 				Snackbar.LENGTH_INDEFINITE);
 	}
 
@@ -298,7 +311,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 			}
 
 			if (getGui() != null) {
-				getGui().dismissSnackbar();
+				getGui().dismissMessage();
 			}
 
 			// begin a new game
@@ -340,7 +353,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	@Override
 	public void onBluetoothDeviceConnected(BluetoothDevice device) {
 		if (getGameMode() != null) {
-			getGui().dismissSnackbar();
+			getGui().dismissMessage();
 
 			startNewGame();
 
@@ -352,8 +365,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 			resume();
 		} else {
-			getGui().showSnackbar(mContext.getString(R.string.connected_to_bluetooth_device, device.getName()),
-					Snackbar.LENGTH_INDEFINITE);
+			getGui().onConnectedToOpponent(mContext.getString(R.string.connected_to_bluetooth_device, device.getName()));
 		}
 	}
 
@@ -361,7 +373,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	@Override
 	public void onBluetoothConnectionFailed(BluetoothDevice device) {
 		setGameMode(null);
-		getGui().showSnackbar(mContext.getString(R.string.connection_to_bluetooth_device_failed),
+		getGui().showMessage(mContext.getString(R.string.connection_to_bluetooth_device_failed),
 				Snackbar.LENGTH_LONG);
 	}
 
@@ -369,7 +381,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	public void onBluetoothConnectionLost(BluetoothDevice device) {
 		if (isGameActive()) {
 			if (getGui() != null) {
-				getGui().showSnackbar(
+				getGui().showMessage(
 						mContext.getString(R.string.bluetooth_connection_to_device_lost),
 						Snackbar.LENGTH_INDEFINITE);
 			}

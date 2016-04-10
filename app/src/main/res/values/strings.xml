@@ -332,4 +332,7 @@ If you are running on battery power, it is recommended that you disable analysis
     <string name="game_mode_two_computers">two computers</string>
     <string name="game_mode_player_black">black</string>
     <string name="game_mode_player_white">white</string>
+	<string name="dark_knight_download_pgn_activity_label">Dark Knight: Download PGN</string>
+	<string name="pgn_directory_is_inaccessible">PGN directory is inaccessible.</string>
+	<string name="stop_waiting_for_opponent">Stop</string>
 </resources>

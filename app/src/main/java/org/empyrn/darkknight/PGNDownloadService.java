@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.ResultReceiver;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
@@ -34,8 +35,10 @@ public class PGNDownloadService extends IntentService {
 
 		final String downloadFilename = DarkKnightActivity.PGN_DIR + File.separator + "Game" + new Random().nextInt() + ".pgn";
 
-		System.err.println("Downloading " + urlToDownload + " to "
-				+ downloadFilename);
+		if (BuildConfig.DEBUG) {
+			Log.i(getClass().getSimpleName(), "Downloading " + urlToDownload + " to "
+					+ downloadFilename);
+		}
 
 		try {
 			File pgnDir = new File(DarkKnightActivity.PGN_DIR);
@@ -44,7 +47,7 @@ public class PGNDownloadService extends IntentService {
 			pgnDir.mkdirs();
 
 			if (!pgnDir.exists()) {
-				System.err.println(pgnDir + " doesn't exist");
+				Toast.makeText(this, R.string.pgn_directory_is_inaccessible, Toast.LENGTH_LONG).show();
 				return;
 			}
 
@@ -67,7 +70,6 @@ public class PGNDownloadService extends IntentService {
 				// publishing the progress....
 				Bundle resultData = new Bundle();
 				resultData.putInt("progress", (int) (total * 100 / fileLength));
-				//receiver.send(UPDATE_PROGRESS, resultData);
 				output.write(data, 0, count);
 			}
 
