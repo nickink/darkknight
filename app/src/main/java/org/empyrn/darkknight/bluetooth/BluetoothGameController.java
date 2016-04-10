@@ -277,7 +277,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 			return;
 		}
 
-		getGui().showSnackbar(mContext.getString(R.string.connecting_to_bluetooth_device),
+		getGui().showSnackbar(mContext.getString(R.string.connecting_to_bluetooth_device, device.getName()),
 				Snackbar.LENGTH_INDEFINITE);
 	}
 
@@ -352,7 +352,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 			resume();
 		} else {
-			getGui().showSnackbar(mContext.getString(R.string.connected_to_bluetooth_device),
+			getGui().showSnackbar(mContext.getString(R.string.connected_to_bluetooth_device, device.getName()),
 					Snackbar.LENGTH_INDEFINITE);
 		}
 	}

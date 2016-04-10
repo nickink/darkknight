@@ -449,7 +449,7 @@ public class BluetoothGameEventListener {
 			// keep listening to the InputStream while connected
 			while (true) {
 				try {
-					// Read from the InputStream
+					// read from the input stream
 					bytes = mmInStream.read(buffer);
 
 					// Send the obtained bytes to the UI Activity
