@@ -1,0 +1,34 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        applicationId "org.empyrn.darkknight"
+        minSdkVersion 22
+        targetSdkVersion 23
+
+        ndk {
+            moduleName "jni"
+            cFlags "-std=c++11 -fexceptions -mandroid" +
+                    " -DTARGET_OS=android -D__ANDROID__" +
+                    " -isystem \$(SYSROOT)/usr/include" +
+                    " -DNO_PREFETCH=1"
+            stl "gnustl_shared"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    compile 'com.android.support:appcompat-v7:23.2.0'
+    compile 'com.android.support:design:23.2.0'
+    compile 'com.android.support:recyclerview-v7:23.2.0'
+}

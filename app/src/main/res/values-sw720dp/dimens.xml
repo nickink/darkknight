@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="fab_margin">24dp</dimen>
+    <dimen name="fab_total_spacing">108dp</dimen>
+    <dimen name="move_list_horizontal_margin">16dp</dimen>
+    <dimen name="move_list_text_size">100sp</dimen>
+</resources>

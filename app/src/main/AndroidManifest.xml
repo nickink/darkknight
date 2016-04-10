@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="org.empyrn.darkknight"
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          android:installLocation="auto">
+
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:allowBackup="true"
+        android:fullBackupContent="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".DarkKnightActivity"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="Preferences"/>
+        <activity
+            android:name="EditBoard"
+            android:configChanges="orientation"
+            android:label="Edit Board">
+        </activity>
+        <activity
+            android:name=".LoadPGNActivity"
+            android:configChanges="orientation"
+            android:label="Load PGN game">
+        </activity>
+        <activity
+            android:name="CPUWarning"
+            android:label="CPU Warning">
+        </activity>
+        <activity
+            android:name=".bluetooth.DeviceListActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:label="@string/bluetooth_select_device">
+        </activity>
+        <activity
+            android:name=".PGNDownloadActivity"
+            android:label="Dark Knight: Download PGN"
+            android:launchMode="singleInstance">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:host="www.chessgames.com"/>
+                <data android:pathPrefix="/pgn/"/>
+            </intent-filter>
+        </activity>
+
+        <service android:name=".PGNDownloadService"/>
+    </application>
+</manifest>
