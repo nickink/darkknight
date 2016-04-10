@@ -54,12 +54,11 @@
 			android:summary="Play sound when computer makes a move"
 			android:defaultValue="false">
 		</CheckBoxPreference>
-		<CheckBoxPreference
-			android:key="oneTouchMoves"
-			android:title="One Touch Moves"
-			android:summary="Touching a square that corresponds to one unique move makes that move immediately"
-			android:defaultValue="false">
-		</CheckBoxPreference>
+		<!--<CheckBoxPreference-->
+			<!--android:key="oneTouchMoves"-->
+			<!--android:title="One Touch Moves"-->
+			<!--android:summary="Touching a square that corresponds to one unique move makes that move immediately"-->
+			<!--android:defaultValue="false" />-->
 	</PreferenceCategory>
 	<PreferenceCategory
 		android:title="Other">

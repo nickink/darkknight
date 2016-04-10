@@ -149,16 +149,19 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		}
 
 		if (!mGameController.hasGame()) {
-			// restore controller from regular saved instance state
-			if (savedInstanceState != null) {
-				if (savedInstanceState.containsKey("Status")) {
-					GameMode gameMode = GameMode.values()[savedInstanceState.getInt("GameMode")];
-					mGameController.setGui(this);
-					mGameController.restoreGame(gameMode, savedInstanceState.getByteArray("Status"));
-				} else {
-					Toast.makeText(this, R.string.game_could_not_be_restored, Toast.LENGTH_LONG).show();
-				}
+			// restore controller from saved instance state if possible
+			if (savedInstanceState != null
+					&& savedInstanceState.containsKey("GameMode")
+					&& savedInstanceState.containsKey("Status")) {
+				mGameController.setGui(this);
+				GameMode gameMode = GameMode.values()[savedInstanceState.getInt("GameMode")];
+				mGameController.restoreGame(gameMode, savedInstanceState.getByteArray("Status"));
 			} else {
+				if (savedInstanceState != null) {
+					// indicate that an error occurred attempting to reload from the saved instance state
+					Toast.makeText(this, R.string.game_could_not_be_restored, Toast.LENGTH_SHORT).show();
+				}
+
 				int gameMode = settings.getInt("GameMode", -1);
 				String dataStr = settings.getString("GameState", null);
 				if (dataStr != null && gameMode >= 0) {
@@ -221,7 +224,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	 * Read UI preferences for the UI and update accordingly.
 	 */
 	private void readUiPrefs() {
-		oneTouchMoves = settings.getBoolean("oneTouchMoves", false);
+		//oneTouchMoves = settings.getBoolean("oneTouchMoves", false);
+		oneTouchMoves = false;
 
 		mShowThinking = settings.getBoolean("showThinking", false);
 		maxNumArrows = Integer.parseInt(settings.getString("thinkingArrows", "2"));
@@ -825,7 +829,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	@Override
 	public void onGameStopped() {
-
+		invalidateUi();
 	}
 
 	@Override
