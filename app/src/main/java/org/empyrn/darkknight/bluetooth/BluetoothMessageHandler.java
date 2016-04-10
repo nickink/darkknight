@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.empyrn.darkknight.BuildConfig;
@@ -38,7 +39,7 @@ class BluetoothMessageHandler {
 		void onBluetoothConnectingToDevice(BluetoothDevice device);
 		void onBluetoothDeviceConnected(BluetoothDevice device);
 		void onBluetoothConnectionFailed(BluetoothDevice device);
-		void onBluetoothConnectionLost(BluetoothDevice device);
+		void onBluetoothConnectionLost(@Nullable BluetoothDevice device);
 		void onBluetoothMessageReceived(BluetoothDevice fromDevice, String message);
 	}
 

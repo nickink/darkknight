@@ -311,7 +311,8 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="dark_knight_does_not_have_external_storage_permission">Dark Knight does not have permission to access external storage.</string>
 	<string name="your_opponent_attempted_to_make_a_move_during_your_turn">Your opponent attempted to make a move during your turn. It was ignored.</string>
 	<string name="your_opponent_tried_to_start_a_new_game">Your opponent tried to start a new game, but one was already in progress.</string>
-	<string name="bluetooth_connection_to_device_lost">Bluetooth connection to device lost, game stopped.</string>
+	<string name="bluetooth_connection_to_device_lost_generic">Bluetooth connection to device lost, game stopped.</string>
+	<string name="bluetooth_connection_to_device_lost">Bluetooth connection to %1$s lost, game stopped.</string>
 	<string name="this_device_is_already_discoverable">This device is already discoverable.</string>
 	<string name="heavy_cpu_usage">Heavy CPU usage</string>
     <string name="difficulty_depth_description">Depth the engine looks ahead (determines difficulty)</string>

@@ -120,6 +120,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	private boolean canResign;
 
+	static final int MODE_ENGINE = 0;
+	static final int MODE_BLUETOOTH = 1;
+
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -134,13 +137,18 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			}
 		});
 
-		try {
-			mGameController = EngineController.getInstance();
-		} catch (UnsatisfiedLinkError e) {
-			// critical error, abort
-			Toast.makeText(this, R.string.dk_this_platform_not_supported, Toast.LENGTH_LONG).show();
-			finish();
-			return;
+		if (savedInstanceState == null || savedInstanceState.getInt("ControllerMode", MODE_ENGINE) == MODE_ENGINE) {
+			try {
+				mGameController = EngineController.getInstance();
+			} catch (UnsatisfiedLinkError e) {
+				// critical error, abort
+				Toast.makeText(this, R.string.dk_this_platform_not_supported, Toast.LENGTH_LONG).show();
+				finish();
+				return;
+			}
+		} else {
+			mGameController = BluetoothGameController.getLastInstance(this);
+			((BluetoothGameController) mGameController).setDiscoverable(this);
 		}
 
 		if (mGameController.getGameTextListener() == null) {
@@ -151,6 +159,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		if (!mGameController.hasGame()) {
 			// restore controller from saved instance state if possible
 			if (savedInstanceState != null
+					&& savedInstanceState.containsKey("ControllerMode")
 					&& savedInstanceState.containsKey("GameMode")
 					&& savedInstanceState.containsKey("Status")) {
 				mGameController.setGui(this);
@@ -209,7 +218,14 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 
-		if (mGameController != null && mGameController.getGameMode() != null) {
+		if (mGameController == null) {
+			return;
+		}
+
+		outState.putInt("ControllerMode", mGameController instanceof EngineController ? MODE_ENGINE
+				: MODE_BLUETOOTH);
+
+		if (mGameController.getGameMode() != null) {
 			int gameModeOrdinal = mGameController.getGameMode().ordinal();
 			outState.putInt("GameMode", gameModeOrdinal);
 
@@ -808,12 +824,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	@Override
 	public void showMessage(CharSequence message, int duration) {
-		if (mCurrentSnackbar == null || mCurrentSnackbar.getDuration() != duration) {
-			mCurrentSnackbar = Snackbar.make(mCoordinatorView, message, duration);
-		} else {
-			mCurrentSnackbar.setText(message);
-		}
-
+		mCurrentSnackbar = Snackbar.make(mCoordinatorView, message, duration);
 		mCurrentSnackbar.show();
 	}
 

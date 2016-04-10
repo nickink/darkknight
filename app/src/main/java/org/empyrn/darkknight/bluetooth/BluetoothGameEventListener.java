@@ -383,7 +383,8 @@ public class BluetoothGameEventListener {
 				mmSocket.connect();
 			} catch (IOException e) {
 				connectionFailed(mmDevice);
-				// Close the socket
+
+				// close the socket
 				try {
 					mmSocket.close();
 				} catch (IOException e2) {
@@ -391,7 +392,8 @@ public class BluetoothGameEventListener {
 							"unable to close() socket during connection failure",
 							e2);
 				}
-				// Start the service over to restart listening mode
+
+				// start the service over to restart listening mode
 				BluetoothGameEventListener.this.startListening();
 				return;
 			}

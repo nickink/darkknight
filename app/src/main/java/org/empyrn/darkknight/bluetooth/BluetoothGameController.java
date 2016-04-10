@@ -26,6 +26,9 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	private GameMode mGameMode;
 
+	@Deprecated
+	private static BluetoothGameController mLastInstance;
+
 
 	public BluetoothGameController(Context context) {
 		this(context, BluetoothAdapter.getDefaultAdapter());
@@ -36,11 +39,23 @@ public class BluetoothGameController extends AbstractGameController implements B
 		mBluetoothAdapter = bluetoothAdapter;
 		mGameMode = null;
 
+		mLastInstance = this;
+
 		if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
 			throw new IllegalStateException("Cannot create Bluetooth game without enabled Bluetooth controller");
 		}
 
 		setupBluetoothService();
+	}
+
+	@Deprecated
+	public static synchronized BluetoothGameController getLastInstance(Context context) {
+		if (mLastInstance == null) {
+			mLastInstance = new BluetoothGameController(context);
+			mLastInstance.setDiscoverable(context);
+		}
+
+		return mLastInstance;
 	}
 
 	public void setDiscoverable(Context context) {
@@ -122,6 +137,8 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	public void stopBluetoothService() {
+		mLastInstance = null;
+
 		if (mBluetoothGameEventListener == null) {
 			return;
 		}
@@ -170,8 +187,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public void restoreGame(GameMode gameMode, byte[] state) {
-		// not supported yet
-		throw new UnsupportedOperationException();
+		// not supported yet, so do nothing
 	}
 
 	@Override
@@ -199,9 +215,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public void pause() {
-		if (mBluetoothGameEventListener != null) {
-			mBluetoothGameEventListener.reset();
-		}
+
 	}
 
 	@Override
@@ -375,12 +389,17 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	@Override
-	public void onBluetoothConnectionLost(BluetoothDevice device) {
+	public void onBluetoothConnectionLost(@Nullable BluetoothDevice device) {
 		if (isGameActive()) {
 			if (getGui() != null) {
-				getGui().showMessage(
-						mContext.getString(R.string.bluetooth_connection_to_device_lost),
-						Snackbar.LENGTH_INDEFINITE);
+				String error;
+				if (device == null) {
+					error = mContext.getString(R.string.bluetooth_connection_to_device_lost_generic);
+				} else {
+					error = mContext.getString(R.string.bluetooth_connection_to_device_lost, device.getName());
+				}
+
+				getGui().showMessage(error, Snackbar.LENGTH_INDEFINITE);
 			}
 
 			pause();
