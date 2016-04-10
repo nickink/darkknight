@@ -375,7 +375,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	protected void onPause() {
 		super.onPause();
 
-		if (mGameController != null) {
+		if (mGameController != null && mGameController.getGame() != null) {
 			mGameController.pause();
 			byte[] data = mGameController.getPersistableGameState();
 			Editor editor = settings.edit();
@@ -453,6 +453,19 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		stopAnalysisMenuItem.setVisible(!canAnalyze);
 		flipBoardMenuItem.setVisible(!canAnalyze);
 		resignMenuItem.setVisible(canResign && canAnalyze);
+
+		final boolean hasBluetooth = BluetoothAdapter.getDefaultAdapter() != null;
+
+		final MenuItem bluetoothSubmenu = menu.findItem(R.id.bluetooth_submenu);
+		bluetoothSubmenu.setVisible(hasBluetooth);
+		if (hasBluetooth) {
+			final MenuItem bluetoothDiscoverableMenuItem = menu.findItem(R.id.bluetooth_set_discoverable);
+
+			final boolean isBluetoothDiscoverable = BluetoothAdapter.getDefaultAdapter().getScanMode()
+					== BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
+			bluetoothDiscoverableMenuItem.setChecked(isBluetoothDiscoverable);
+			bluetoothDiscoverableMenuItem.setEnabled(!isBluetoothDiscoverable);
+		}
 
 		return true;
 	}

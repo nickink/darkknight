@@ -9,6 +9,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import org.empyrn.darkknight.BuildConfig;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,7 +25,6 @@ import java.util.UUID;
 public class BluetoothGameEventListener {
 	// Debugging
 	private static final String TAG = "BluetoothEventListener";
-	private static final boolean D = true;
 
 	// Name for the SDP record when creating server socket
 	private static final String NAME = "Dark Knight Bluetooth Game Controller";
@@ -66,7 +67,7 @@ public class BluetoothGameEventListener {
 	 * @param state An integer defining the current connection state
 	 */
 	private synchronized void setState(BluetoothDevice device, int state) {
-		if (D) {
+		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "setState() " + mState + " -> " + state);
 		}
 
@@ -89,7 +90,7 @@ public class BluetoothGameEventListener {
 	}
 
 	public synchronized void startListening() {
-		if (D) {
+		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "startListening");
 		}
 
@@ -153,7 +154,7 @@ public class BluetoothGameEventListener {
 	 * @param device The BluetoothDevice to connect
 	 */
 	public synchronized void connect(BluetoothDevice device) {
-		if (D) {
+		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "connect to: " + device);
 		}
 
@@ -185,7 +186,7 @@ public class BluetoothGameEventListener {
 	 */
 	public synchronized void connected(BluetoothSocket socket,
 	                                   BluetoothDevice device) {
-		if (D) {
+		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "connected");
 		}
 
@@ -227,7 +228,7 @@ public class BluetoothGameEventListener {
 	 * Stop all threads
 	 */
 	public synchronized void stopListening() {
-		if (D) {
+		if (BuildConfig.DEBUG) {
 			Log.d(TAG, "stopListening");
 		}
 
@@ -319,7 +320,7 @@ public class BluetoothGameEventListener {
 		}
 
 		public void run() {
-			if (D)
+			if (BuildConfig.DEBUG)
 				Log.d(TAG, "BEGIN mAcceptThread" + this);
 			setName("AcceptThread");
 			BluetoothSocket socket;
@@ -358,12 +359,12 @@ public class BluetoothGameEventListener {
 					}
 				}
 			}
-			if (D)
+			if (BuildConfig.DEBUG)
 				Log.i(TAG, "END mAcceptThread");
 		}
 
 		public void cancel() {
-			if (D)
+			if (BuildConfig.DEBUG)
 				Log.d(TAG, "cancel " + this);
 			try {
 				mmServerSocket.close();
