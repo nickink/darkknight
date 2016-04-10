@@ -56,7 +56,8 @@
         android:title="@string/settings"/>
     <item
         android:id="@+id/item_draw"
-        android:title="@string/offer_draw"/>
+        android:title="@string/offer_draw"
+        android:visible="false"/>
     <item
         android:id="@+id/item_goto_move"
         android:title="@string/go_to_move_number"/>

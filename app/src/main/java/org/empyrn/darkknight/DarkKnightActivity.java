@@ -472,6 +472,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		final MenuItem bluetoothSubmenu = menu.findItem(R.id.bluetooth_submenu);
 		bluetoothSubmenu.setVisible(hasBluetooth);
+		bluetoothSubmenu.setEnabled(canAnalyze || (isUsingBluetooth && !mGameController.isGameActive()));
 		if (hasBluetooth) {
 			final MenuItem startBluetoothGame = menu.findItem(R.id.bluetooth_create);
 			startBluetoothGame.setEnabled(mGameController instanceof BluetoothGameController);
@@ -748,6 +749,23 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		return (PGNScreenText) mGameController.getGameTextListener();
 	}
 
+	private String getStringForGameMode(GameMode gameMode) {
+		switch (gameMode) {
+			case PLAYER_WHITE:
+				return getString(R.string.game_mode_player_white);
+			case PLAYER_BLACK:
+				return getString(R.string.game_mode_player_black);
+			case TWO_COMPUTERS:
+				return getString(R.string.game_mode_two_computers);
+			case TWO_PLAYERS:
+				return getString(R.string.game_mode_two_players);
+			case ANALYSIS:
+				return getString(R.string.game_mode_analysis);
+			default:
+				return getString(R.string.game_mode_unknown);
+		}
+	}
+
 	@Override
 	public void onNewGameStarted() {
 		resetChessBoardView();
@@ -755,7 +773,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		invalidateUi();
 
 		if (mGameController.getGameMode() != GameMode.ANALYSIS) {
-			Toast.makeText(this, "New game started as " + mGameController.getGameMode(), Toast.LENGTH_SHORT).show();
+			Snackbar.make(mCoordinatorView, getString(R.string.new_game_started_as_kind,
+					getStringForGameMode(mGameController.getGameMode())), Snackbar.LENGTH_SHORT).show();
 		}
 
 		mGameController.resume();
@@ -1178,7 +1197,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		boolean canUndoMove;
 		boolean canRedoMove;
 
-		if (mGameController == null) {
+		if (mGameController == null || mGameController instanceof BluetoothGameController) {
 			canUndoMove = false;
 			canRedoMove = false;
 		} else {
@@ -1266,7 +1285,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	@Override
 	public void onGameOver(Game.Status endState) {
-		Toast.makeText(this, "Game over! " + endState, Toast.LENGTH_SHORT).show();
+		Snackbar.make(mCoordinatorView, "Game over! " + endState, Toast.LENGTH_SHORT).show();
 
 		mChessBoardView.clearSelection();
 		mChessBoardView.setPosition(mGameController.getGame().currPos());
