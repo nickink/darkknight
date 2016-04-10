@@ -316,6 +316,16 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					ActivityCompat.invalidateOptionsMenu(DarkKnightActivity.this);
 				}
 			});
+		} else if (mGameController != null && mGameController.getGame() != null) {
+			Game.Status status = mGameController.getGame().getGameStatus();
+
+			if (status != Game.Status.ALIVE) {
+				fab.show();
+				canResign = false;
+			} else {
+				fab.hide();
+				canResign = true;
+			}
 		}
 
 		if (mGameController != null && mGameController.getGame() != null) {
