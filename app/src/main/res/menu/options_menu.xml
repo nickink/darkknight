@@ -33,15 +33,16 @@
     <item
         android:id="@+id/bluetooth_submenu"
         android:title="@string/bluetooth"
-        app:showAsAction="never">
+        app:showAsAction="always"
+        android:icon="@drawable/ic_bluetooth_white_24dp">
         <menu>
-            <item
-                android:id="@+id/bluetooth_create"
-                android:title="@string/create_bluetooth_game"/>
             <item
                 android:id="@+id/bluetooth_set_discoverable"
                 android:checkable="true"
                 android:title="@string/bluetooth_discoverable"/>
+            <item
+                android:id="@+id/bluetooth_create"
+                android:title="@string/create_bluetooth_game"/>
             <item
                 android:id="@+id/bluetooth_reset"
                 android:title="@string/bluetooth_reset"/>

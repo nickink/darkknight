@@ -439,19 +439,23 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		final MenuItem flipBoardMenuItem = menu.findItem(R.id.item_flip_board);
 
 		final boolean hasGame = mGameController != null && mGameController.getGame() != null;
-		final boolean gameIsAlive = hasGame && mGameController.getGame().getGameStatus() == Game.Status.ALIVE;
+		final boolean isUsingBluetooth = mGameController instanceof BluetoothGameController;
+		final boolean gameIsAlive = hasGame
+				&& mGameController.getGame().getGameStatus() == Game.Status.ALIVE;
 		final boolean isPlayerTurn = hasGame && mGameController.isPlayerTurn();
 
-		editBoardMenuItem.setEnabled(hasGame);
+		editBoardMenuItem.setEnabled(hasGame && !isUsingBluetooth);
 		resignMenuItem.setVisible(gameIsAlive);
-		forceMoveMenuItem.setEnabled(hasGame && mGameController.isOpponentThinking());
+		forceMoveMenuItem.setEnabled(hasGame && !isUsingBluetooth
+				&& mGameController.isOpponentThinking());
 		offerDrawMenuItem.setEnabled(isPlayerTurn);
 		resignMenuItem.setEnabled(isPlayerTurn);
 
-		final boolean canAnalyze = hasGame && mGameController.getGameMode() != GameMode.ANALYSIS;
+		final boolean canAnalyze = hasGame && !isUsingBluetooth
+				&& mGameController.getGameMode() != GameMode.ANALYSIS;
 		startAnalysisMenuItem.setVisible(canAnalyze);
-		stopAnalysisMenuItem.setVisible(!canAnalyze);
-		flipBoardMenuItem.setVisible(!canAnalyze);
+		stopAnalysisMenuItem.setVisible(!canAnalyze && !isUsingBluetooth);
+		flipBoardMenuItem.setVisible(!canAnalyze && !isUsingBluetooth);
 		resignMenuItem.setVisible(canResign && canAnalyze);
 
 		final boolean hasBluetooth = BluetoothAdapter.getDefaultAdapter() != null;
@@ -459,12 +463,14 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		final MenuItem bluetoothSubmenu = menu.findItem(R.id.bluetooth_submenu);
 		bluetoothSubmenu.setVisible(hasBluetooth);
 		if (hasBluetooth) {
+			final MenuItem startBluetoothGame = menu.findItem(R.id.bluetooth_create);
+			startBluetoothGame.setEnabled(mGameController instanceof BluetoothGameController);
+
 			final MenuItem bluetoothDiscoverableMenuItem = menu.findItem(R.id.bluetooth_set_discoverable);
 
 			final boolean isBluetoothDiscoverable = BluetoothAdapter.getDefaultAdapter().getScanMode()
 					== BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
-			bluetoothDiscoverableMenuItem.setChecked(isBluetoothDiscoverable);
-			bluetoothDiscoverableMenuItem.setEnabled(!isBluetoothDiscoverable);
+			bluetoothDiscoverableMenuItem.setChecked(isUsingBluetooth && isBluetoothDiscoverable);
 		}
 
 		return true;
@@ -612,6 +618,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				mGameController = bGameCtrl;
 
 				bGameCtrl.setDiscoverable(this);
+				ActivityCompat.invalidateOptionsMenu(this);
 
 				return true;
 //			case R.id.bluetooth_reset:
@@ -680,10 +687,12 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					((BluetoothGameController) mGameController).setupBluetoothService();
 				} else {
 					// Bluetooth not enabled or an error occurred
-					showDialog(R.string.bt_not_enabled_leaving);
+					Toast.makeText(this, R.string.bt_not_enabled_leaving, Toast.LENGTH_LONG).show();
 				}
 				break;
 		}
+
+		ActivityCompat.invalidateOptionsMenu(this);
 	}
 
 	private void loadPGN(String pgn) {
