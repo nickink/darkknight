@@ -301,7 +301,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		ActivityCompat.invalidateOptionsMenu(this);
 		updateUndoRedoMoveArrowVisibility();
 
-		if (mGameController != null) {
+		if (mGameController != null && mGameController instanceof EngineController) {
 			((EngineController) mGameController).checkGameStateAsync(new EngineController.AsyncGameStateCheckListener() {
 				@Override
 				public void onGameStateReceived(EngineController controller, Game.Status status) {
