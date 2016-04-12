@@ -106,6 +106,7 @@ public class ChessBoardView extends View {
 	 */
 	public final void setPosition(Position pos) {
 		if (pos == null) {
+			clearSelection();
 			pos = new Position();
 		}
 
@@ -122,7 +123,7 @@ public class ChessBoardView extends View {
 	 *
 	 * @param flipped flipped or not
 	 */
-	final public void setFlipped(boolean flipped) {
+	public final void setFlipped(boolean flipped) {
 		if (this.flipped != flipped) {
 			this.flipped = flipped;
 			invalidate();
@@ -146,7 +147,7 @@ public class ChessBoardView extends View {
 		setSelection(sq);
 	}
 
-	final public void clearSelection() {
+	public final void clearSelection() {
 		setSelection(-1);
 	}
 

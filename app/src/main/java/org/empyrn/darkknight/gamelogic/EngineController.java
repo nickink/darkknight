@@ -305,9 +305,11 @@ public class EngineController extends AbstractGameController implements GameCont
 
 	@Override
 	public void stopGame() {
-		shutdownEngine();
-		gameMode = null;
-		game = null;
+		if (hasGame()) {
+			shutdownEngine();
+			gameMode = null;
+			game = null;
+		}
 
 		if (getGui() != null) {
 			getGui().onGameStopped();
@@ -412,20 +414,6 @@ public class EngineController extends AbstractGameController implements GameCont
 		}.execute();
 	}
 
-//	@Override
-//	public void updateFromPreferences(SharedPreferences settings) {
-//		int timeControl = Integer.parseInt(settings.getString("timeControl", "300000"));
-//		int movesPerSession = Integer.parseInt(settings.getString("movesPerSession", "60"));
-//		int timeIncrement = Integer.parseInt(settings.getString("timeIncrement", "0"));
-//		int maxDepth = Integer.parseInt(settings.getString("difficultyDepth", "-1"));
-//
-//		String bookFile = settings.getString("bookFile", "");
-//		this.setTimeLimit(timeControl, movesPerSession, timeIncrement);
-//		this.setBookFileName(getFullBookFileName(bookFile));
-//		this.setMaxDepth(maxDepth);
-//		super.updateFromPreferences(settings);
-//	}
-
 	private static String getFullBookFileName(String bookFile) {
 		if (bookFile.length() > 0) {
 			File extDir = Environment.getExternalStorageDirectory();
@@ -514,10 +502,6 @@ public class EngineController extends AbstractGameController implements GameCont
 		stopAnalysis();
 		stopComputerThinking();
 		EnginePlayer.getInstance().clearTT();
-//		updateComputeThreads(true);
-//		//updateMoveList();
-//
-//		onPositionChanged();
 	}
 
 	private void undoMoveNoUpdate() {
@@ -670,30 +654,6 @@ public class EngineController extends AbstractGameController implements GameCont
 	public final int numVariations() {
 		return game == null ? 0 : game.numVariations();
 	}
-
-//	public final void changeVariation(int delta) {
-//		if (game.numVariations() > 1) {
-//			ss.searchResultWanted = false;
-//			stopAnalysis();
-//			stopComputerThinking();
-//			game.changeVariation(delta);
-//			updateComputeThreads(true);
-//
-//			onPositionChanged();
-//		}
-//	}
-
-//	public final void removeVariation() {
-//		if (game.numVariations() > 1) {
-//			ss.searchResultWanted = false;
-//			stopAnalysis();
-//			stopComputerThinking();
-//			game.removeVariation();
-//			updateComputeThreads(true);
-//
-//			onPositionChanged();
-//		}
-//	}
 
 	public final void goToMove(int moveNr) {
 		if (game == null) {
@@ -857,11 +817,24 @@ public class EngineController extends AbstractGameController implements GameCont
 
 		computerThread.stop();
 
+		int elapsed = 0;
+
 		while (computerThread != null) {
-			Log.i(getClass().getSimpleName(), "Waiting for computer thread to end");
+			if (BuildConfig.DEBUG) {
+				Log.i(getClass().getSimpleName(), "Waiting for computer thread to end");
+			}
+
+			if (elapsed > 500) {
+				computerThread.cancel(true);
+				computerThread = null;
+				if (BuildConfig.DEBUG) {
+					Log.w(getClass().getSimpleName(), "Computer thread forcibly terminated");
+				}
+			}
 
 			try {
 				Thread.sleep(100);
+				elapsed += 100;
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -1066,15 +1039,6 @@ public class EngineController extends AbstractGameController implements GameCont
 			// stopGame the search
 			enginePlayer.stopSearch();
 		}
-	}
-
-	public final synchronized void setTimeLimit(int time, int moves, int inc) {
-		timeControl = time;
-		movesPerSession = moves;
-		timeIncrement = inc;
-		if (game != null)
-			game.getTimeController().setTimeControl(timeControl, movesPerSession,
-					timeIncrement);
 	}
 
 	private void shutdownEngine() {

@@ -536,7 +536,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			final boolean isBluetoothDiscoverable = BluetoothAdapter.getDefaultAdapter().getScanMode()
 					== BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
 			bluetoothDiscoverableMenuItem.setChecked(isUsingBluetooth && isBluetoothDiscoverable
-					&& isListeningOnBluetooth);
+					&& (isListeningOnBluetooth || isConnected));
 			bluetoothDiscoverableMenuItem.setEnabled(!isConnected);
 
 			final MenuItem disconnectMenuItem = menu.findItem(R.id.bluetooth_disconnect);
@@ -555,7 +555,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			Random r = new Random();
 
 			// throw the dice to determine which color to play
-			mGameController.stopGame();
+			if (mGameController.hasGame()) {
+				mGameController.stopGame();
+			}
+
 			mGameController.setGameMode(r.nextBoolean() ? GameMode.PLAYER_WHITE : GameMode.PLAYER_BLACK);
 			mGameController.startGame();
 		}
@@ -694,16 +697,22 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					invalidateUi();
 
 					Toast.makeText(this, R.string.switched_to_bluetooth_play, Toast.LENGTH_LONG).show();
-
-					return true;
 				} else {
 					mGameController.stopGame();
 					initEngineController();
+					createNewGame();
+					invalidateUi();
 
 					Toast.makeText(this, R.string.switched_to_playing_against_the_computer, Toast.LENGTH_LONG).show();
 				}
+
+				return true;
 			case R.id.bluetooth_disconnect:
 				mGameController.stopGame();
+				mChessBoardView.setPosition(null);
+				moveListView.setText(null);
+				mStatusView.setText(null);
+				fab.show();
 				break;
 			case R.id.item_about:
 				showDialog(ABOUT_DIALOG);
