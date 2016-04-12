@@ -244,14 +244,14 @@ public class EngineController extends AbstractGameController implements GameCont
 	}
 
 	private void startNewGame(@Nullable String fenPgn) throws ChessParseError {
-		if (BuildConfig.DEBUG) {
-			Log.i(getClass().getSimpleName(), "Starting new game with mode " + gameMode);
-		}
-
 		if (getGameTextListener() == null) {
 			throw new IllegalStateException("Game text listener must be initialized");
 		} else if (gameMode == null) {
 			throw new IllegalStateException("Must set a game mode to start a new game");
+		}
+
+		if (BuildConfig.DEBUG) {
+			Log.i(getClass().getSimpleName(), "Starting new game with mode " + gameMode);
 		}
 
 		stopComputerThinking();

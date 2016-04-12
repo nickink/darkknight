@@ -71,7 +71,7 @@ public interface GUIInterface {
 	 */
 	void setRemainingTime(long wTime, long bTime, long nextUpdate);
 
-	void onWaitingForOpponent(CharSequence hint);
+	void onWaitingForOpponent();
 
 	void onConnectedToOpponent(CharSequence hint);
 

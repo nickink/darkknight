@@ -149,6 +149,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			}
 		} else {
 			mGameController = BluetoothGameController.getLastInstance(this);
+			setBluetoothDiscoverable();
 		}
 
 		if (mGameController.getGameTextListener() == null) {
@@ -403,6 +404,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		if (mGameController instanceof EngineController) {
 			((EngineController) mGameController).setMaxDepth(
 					Integer.valueOf(settings.getString("difficultyDepth", "-1")));
+		} else if (mGameController instanceof BluetoothGameController) {
+			if (((BluetoothGameController) mGameController).isListening()) {
+				onWaitingForOpponent();
+			}
 		}
 	}
 
@@ -533,9 +538,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 			final boolean isListeningOnBluetooth = isUsingBluetooth
 					&& ((BluetoothGameController) mGameController).isListening();
-			final boolean isBluetoothDiscoverable = BluetoothAdapter.getDefaultAdapter().getScanMode()
-					== BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
-			bluetoothDiscoverableMenuItem.setChecked(isUsingBluetooth && isBluetoothDiscoverable
+			bluetoothDiscoverableMenuItem.setChecked(isUsingBluetooth && isBluetoothDiscoverable()
 					&& (isListeningOnBluetooth || isConnected));
 			bluetoothDiscoverableMenuItem.setEnabled(!isConnected);
 
@@ -544,6 +547,24 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		}
 
 		return true;
+	}
+
+	private boolean isBluetoothDiscoverable() {
+		return BluetoothAdapter.getDefaultAdapter().getScanMode()
+				== BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
+	}
+
+	public void setBluetoothDiscoverable() {
+		if (isBluetoothDiscoverable()) {
+			// already discoverable
+			return;
+		}
+
+		Intent discoverableIntent = new Intent(
+				BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+		discoverableIntent.putExtra(
+				BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+		startActivityForResult(discoverableIntent, REQUEST_ENABLE_BT);
 	}
 
 	private boolean createNewGame() {
@@ -679,31 +700,13 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				return true;
 			case R.id.bluetooth_set_discoverable:
 				if (!item.isChecked()) {
-					if (!BluetoothAdapter.getDefaultAdapter().isEnabled()) {
-						Snackbar.make(mCoordinatorView, R.string.enable_bluetooth_to_play, Snackbar.LENGTH_LONG).show();
-						return true;
+					if (isBluetoothDiscoverable()) {
+						switchFromEngineToBluetooth();
+					} else {
+						setBluetoothDiscoverable();
 					}
-
-					destroyGame();
-
-					final BluetoothGameController bGameCtrl
-							= new BluetoothGameController(getApplicationContext());
-					bGameCtrl.setGui(this);
-					bGameCtrl.setGameTextListener(new PGNScreenText(PreferenceManager.getDefaultSharedPreferences(this),
-							new PGNOptions()));
-					mGameController = bGameCtrl;
-
-					bGameCtrl.setDiscoverable(this);
-					invalidateUi();
-
-					Toast.makeText(this, R.string.switched_to_bluetooth_play, Toast.LENGTH_LONG).show();
 				} else {
-					mGameController.stopGame();
-					initEngineController();
-					createNewGame();
-					invalidateUi();
-
-					Toast.makeText(this, R.string.switched_to_playing_against_the_computer, Toast.LENGTH_LONG).show();
+					switchFromBluetoothToEngine();
 				}
 
 				return true;
@@ -723,6 +726,41 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		}
 
 		return false;
+	}
+
+	private void switchFromEngineToBluetooth() {
+		if (BluetoothAdapter.getDefaultAdapter() == null || !BluetoothAdapter.getDefaultAdapter().isEnabled()) {
+			Snackbar.make(mCoordinatorView, R.string.enable_bluetooth_to_play, Snackbar.LENGTH_LONG).show();
+			return;
+		}
+
+		destroyGame();
+
+		final BluetoothGameController bGameCtrl
+				= new BluetoothGameController(getApplicationContext());
+		bGameCtrl.setGui(this);
+		bGameCtrl.setGameTextListener(new PGNScreenText(PreferenceManager.getDefaultSharedPreferences(this),
+				new PGNOptions()));
+		mGameController = bGameCtrl;
+
+		setBluetoothDiscoverable();
+		invalidateUi();
+
+		Toast.makeText(this, R.string.switched_to_bluetooth_play, Toast.LENGTH_LONG).show();
+	}
+
+	private void switchFromBluetoothToEngine() {
+		if (!(mGameController instanceof BluetoothGameController)) {
+			throw new IllegalStateException("Not using Bluetooth to switch");
+		}
+
+		destroyGame();
+
+		initEngineController();
+		createNewGame();
+		invalidateUi();
+
+		Toast.makeText(this, R.string.switched_to_playing_against_the_computer, Toast.LENGTH_LONG).show();
 	}
 
 	@Override
@@ -767,8 +805,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			case REQUEST_ENABLE_BT:
 				// when the request to enable Bluetooth returns
 				if (resultCode == Activity.RESULT_OK) {
-					mGameController = new BluetoothGameController(this, BluetoothAdapter.getDefaultAdapter());
-					((BluetoothGameController) mGameController).setupBluetoothService();
+					switchFromEngineToBluetooth();
 				} else {
 					// Bluetooth not enabled or an error occurred
 					Snackbar.make(mCoordinatorView, R.string.bt_not_enabled_leaving,
@@ -855,8 +892,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		mGameController.resumeGame();
 	}
 
-
-	private boolean needsUpdateFromRestore;
 
 	@Override
 	public void onGameRestored() {
@@ -1398,15 +1433,16 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	}
 
 	@Override
-	public void onWaitingForOpponent(CharSequence hint) {
+	public void onWaitingForOpponent() {
 		mStatusView.setText(null);
 
-		mCurrentSnackbar = Snackbar.make(mCoordinatorView, hint, Snackbar.LENGTH_INDEFINITE);
+		mCurrentSnackbar = Snackbar.make(mCoordinatorView,
+				getString(R.string.waiting_for_a_bluetooth_opponent_to_connect),
+				Snackbar.LENGTH_INDEFINITE);
 		mCurrentSnackbar.setAction(R.string.stop_waiting_for_opponent, new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				mGameController.stopGame();
-				invalidateUi();
+				switchFromBluetoothToEngine();
 			}
 		});
 		mCurrentSnackbar.show();

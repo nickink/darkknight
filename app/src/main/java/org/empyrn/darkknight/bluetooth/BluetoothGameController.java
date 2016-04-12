@@ -54,28 +54,9 @@ public class BluetoothGameController extends AbstractGameController implements B
 	public static synchronized BluetoothGameController getLastInstance(Context context) {
 		if (mLastInstance == null) {
 			mLastInstance = new BluetoothGameController(context);
-			mLastInstance.setDiscoverable(context);
 		}
 
 		return mLastInstance;
-	}
-
-	public void setDiscoverable(Context context) {
-		if (mBluetoothAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
-			Intent discoverableIntent = new Intent(
-					BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-			discoverableIntent.putExtra(
-					BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-			context.startActivity(discoverableIntent);
-		}
-
-//		else if (getGui() != null) {
-////			getGui().showMessage(mContext.getString(
-////					R.string.this_device_is_already_discoverable), Snackbar.LENGTH_SHORT);
-//		} else {
-//			Toast.makeText(mContext, mContext.getString(
-//					R.string.this_device_is_already_discoverable), Toast.LENGTH_SHORT).show();
-//		}
 	}
 
 	@Nullable
@@ -293,7 +274,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 			return;
 		}
 
-		getGui().onWaitingForOpponent(mContext.getString(R.string.waiting_for_a_bluetooth_opponent_to_connect));
+		getGui().onWaitingForOpponent();
 	}
 
 	@Override
