@@ -15,7 +15,7 @@
 	<PreferenceCategory
 		android:title="Difficulty">
 		<ListPreference
-			android:key="difficultyDepth"
+			android:key="difficultyDepth2"
 			android:title="Depth"
 			android:summary="@string/difficulty_depth_description"
 			android:entryValues="@array/difficulty_depth_values"
