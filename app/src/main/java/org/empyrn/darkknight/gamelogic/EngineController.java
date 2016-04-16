@@ -1060,7 +1060,7 @@ public class EngineController extends AbstractGameController implements GameCont
 
 	@Override
 	public boolean isAnalyzing() {
-		return analysisThread != null;
+		return analysisThread != null || mDelayedStartAnalysisTask != null;
 	}
 
 

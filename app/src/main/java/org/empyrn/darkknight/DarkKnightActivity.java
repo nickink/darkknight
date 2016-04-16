@@ -381,7 +381,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			mChessBoardView.setPosition(null);
 		}
 
-		mChessBoardView.setEnabled(mGameController != null && mGameController.isGameActive());
+		mChessBoardView.setEnabled(mGameController != null
+				&& (mGameController.isGameActive() || mGameController.isAnalyzing()));
 	}
 
 
@@ -438,7 +439,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			if (!isChangingConfigurations()) {
 				mGameController.pauseGame();
 			}
-			
+
 			byte[] data = mGameController.getPersistableGameState();
 			Editor editor = mSettings.edit();
 			String dataStr = byteArrToString(data);
