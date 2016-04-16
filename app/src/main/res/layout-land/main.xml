@@ -91,7 +91,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:src="@drawable/ic_arrow_back_white_32dp"
-                android:background="?selectableItemBackgroundBorderless"
+                android:background="?arrowButtonBackground"
                 android:contentDescription="@string/previous_move"/>
             <ImageButton
                 android:id="@+id/go_forward_move_btn"
@@ -99,7 +99,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:src="@drawable/ic_arrow_forward_white_32dp"
-                android:background="?selectableItemBackgroundBorderless"
+                android:background="?arrowButtonBackground"
                 android:contentDescription="@string/next_move"/>
         </LinearLayout>
     </RelativeLayout>
