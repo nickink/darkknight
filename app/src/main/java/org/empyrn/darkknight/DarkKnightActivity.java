@@ -381,16 +381,23 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			mChessBoardView.setPosition(null);
 		}
 
-		mChessBoardView.setEnabled(mGameController != null
-				&& (mGameController.isGameActive() || mGameController.isAnalyzing()));
+		final boolean chessboardEnabled = mGameController != null
+				&& (mGameController.isGameActive() || mGameController.isAnalyzing());
+		if (chessboardEnabled) {
+			enableChessBoard();
+		} else {
+			disableChessBoard();
+		}
 	}
 
 
 	private void enableChessBoard() {
+		mChessBoardView.setEnabled(true);
 		mChessBoardView.setEventListener(new ChessBoardEventListener(mGameController));
 	}
 
 	private void disableChessBoard() {
+		mChessBoardView.setEnabled(false);
 		mChessBoardView.setEventListener(null);
 	}
 

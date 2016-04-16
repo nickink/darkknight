@@ -29,12 +29,11 @@ import java.util.List;
 public class EngineController extends AbstractGameController implements GameController {
 	private String bookFileName = "";
 
-	private
 	@Nullable
-	GameMode gameMode;
-	private
+	private GameMode gameMode;
+
 	@Nullable
-	Game game;
+	private	Game game;
 
 	private ComputerMoveSelectionThread computerThread;
 	private AnalysisThread analysisThread;
@@ -46,6 +45,10 @@ public class EngineController extends AbstractGameController implements GameCont
 	private int maxDepth;
 
 	private static EngineController instance;
+
+	// quick lock to enable when briefly restarting the analysis thread after playing a move,
+	// to provide continuity for the isAnalyzing() method in multi-threaded environments
+	private boolean isAnalysisQuickPause;
 
 
 	/**
@@ -120,6 +123,7 @@ public class EngineController extends AbstractGameController implements GameCont
 				buf.append(pvStr);
 				buf.append("\n");
 			}
+
 			if (currDepth > 0) {
 				buf.append(String.format("d:%d %d:%s t:%.2f n:%d nps:%d",
 						currDepth, currMoveNr, currMove, currTime / 1000.0,
@@ -697,12 +701,17 @@ public class EngineController extends AbstractGameController implements GameCont
 		}
 
 		if (doMove(m)) {
+			if (isAnalyzing()) {
+				isAnalysisQuickPause = true;
+			}
+
 			stopAnalysis();
 			stopComputerThinking();
 			onMoveMade();
 
 			if (getGameMode() == GameMode.ANALYSIS) {
 				startAnalysisDelayed(100);
+				isAnalysisQuickPause = false;
 			} else {
 				updateComputeThreads(true);
 			}
@@ -1022,6 +1031,7 @@ public class EngineController extends AbstractGameController implements GameCont
 			}
 
 			analysisThread = this;
+			isAnalysisQuickPause = false;
 			Log.i(getClass().getSimpleName(), "Analysis thread started");
 		}
 
@@ -1060,7 +1070,7 @@ public class EngineController extends AbstractGameController implements GameCont
 
 	@Override
 	public boolean isAnalyzing() {
-		return analysisThread != null || mDelayedStartAnalysisTask != null;
+		return analysisThread != null || mDelayedStartAnalysisTask != null || isAnalysisQuickPause;
 	}
 
 
