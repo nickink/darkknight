@@ -44,7 +44,11 @@ public abstract class AbstractGameController implements GameController {
 	}
 
 	public final void setGui(@Nullable GUIInterface guiInterface) {
-		this.mGuiInterface = new WeakReference<>(guiInterface);
+		if (guiInterface != null) {
+			mGuiInterface = new WeakReference<>(guiInterface);
+		} else {
+			mGuiInterface = null;
+		}
 	}
 
 	public final boolean hasGame() {

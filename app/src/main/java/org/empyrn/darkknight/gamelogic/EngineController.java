@@ -1058,6 +1058,11 @@ public class EngineController extends AbstractGameController implements GameCont
 		}
 	}
 
+	@Override
+	public boolean isAnalyzing() {
+		return analysisThread != null;
+	}
+
 
 	public interface AsyncGameStateCheckListener {
 		void onGameStateReceived(EngineController controller, Game.Status status);

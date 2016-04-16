@@ -64,4 +64,6 @@ public interface GameController {
 
 	boolean canUndoMove();
 	boolean canRedoMove();
+
+	boolean isAnalyzing();
 }

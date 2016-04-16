@@ -2,8 +2,6 @@ package org.empyrn.darkknight;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
@@ -27,21 +25,18 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.ClipboardManager;
 import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnKeyListener;
 import android.view.View.OnLongClickListener;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -95,7 +90,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	private ScrollView moveListScrollView;
 	private TextView moveListView;
 	private Snackbar mCurrentSnackbar;
-	private FloatingActionButton fab;
+	private FloatingActionButton mFab;
 	private TextView thinkingInfoView;
 
 	private String variantStr = "";
@@ -104,7 +99,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	private boolean boardFlippedForAnalysis = false;
 
-	private SharedPreferences settings;
+	private SharedPreferences mSettings;
 
 	private boolean soundEnabled;
 	private MediaPlayer moveSound;
@@ -113,11 +108,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	public static final String PGN_DIR = Environment.getExternalStorageDirectory().getAbsolutePath()
 			+ File.separator + "DarkKnight" + File.separator + "pgn";
 
-	private long lastVisibleMillis;                 // Time when GUI became invisible. 0 if
-	// currently visible.
+	private long lastVisibleMillis;                 // Time when GUI became invisible. 0 if currently visible.
 
-	private long lastComputationMillis;             // Time when engine last showed that it
-	// was computing.
+	private long lastComputationMillis;             // Time when engine last showed that it was computing.
 
 	private boolean canResign;
 
@@ -134,8 +127,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		}
 
-		settings = PreferenceManager.getDefaultSharedPreferences(this);
-		settings.registerOnSharedPreferenceChangeListener(new OnSharedPreferenceChangeListener() {
+		mSettings = PreferenceManager.getDefaultSharedPreferences(this);
+		mSettings.registerOnSharedPreferenceChangeListener(new OnSharedPreferenceChangeListener() {
 			@Override
 			public void onSharedPreferenceChanged(
 					SharedPreferences sharedPreferences, String key) {
@@ -152,6 +145,14 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			setBluetoothDiscoverable();
 		}
 
+		if (mGameController == null) {
+			Toast.makeText(this, "Could not initialize game controller.", Toast.LENGTH_LONG).show();
+			finish();
+			return;
+		}
+
+		mGameController.setGui(this);
+
 		if (mGameController.getGameTextListener() == null) {
 			mGameController.setGameTextListener(new PGNScreenText(PreferenceManager.getDefaultSharedPreferences(this),
 					new PGNOptions()));
@@ -163,7 +164,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					&& savedInstanceState.containsKey("ControllerMode")
 					&& savedInstanceState.containsKey("GameMode")
 					&& savedInstanceState.containsKey("Status")) {
-				mGameController.setGui(this);
 				GameMode gameMode = GameMode.values()[savedInstanceState.getInt("GameMode")];
 				mGameController.restoreGame(gameMode, savedInstanceState.getByteArray("Status"));
 			} else {
@@ -172,20 +172,19 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					Toast.makeText(this, R.string.game_could_not_be_restored, Toast.LENGTH_SHORT).show();
 				}
 
-				int gameMode = settings.getInt("GameMode", -1);
-				String dataStr = settings.getString("GameState", null);
+				int gameMode = mSettings.getInt("GameMode2", -1);
+				String dataStr = mSettings.getString("GameState2", null);
 				if (dataStr != null && gameMode >= 0) {
-					mGameController.setGui(this);
 					mGameController.restoreGame(GameMode.values()[gameMode], strToByteArr(dataStr));
 				}
-			}
-
-			if (mGameController.getGameMode() == null) {
-				mGameController.setGameMode(GameMode.PLAYER_WHITE);
 			}
 		}
 
 		initUi();
+
+		if (mGameController.getGameMode() == null) {
+			createNewGame();
+		}
 	}
 
 	private boolean initEngineController() {
@@ -253,14 +252,14 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	 * Read UI preferences for the UI and update accordingly.
 	 */
 	private void readUiPrefs() {
-		//oneTouchMoves = settings.getBoolean("oneTouchMoves", false);
+		//oneTouchMoves = mSettings.getBoolean("oneTouchMoves", false);
 		oneTouchMoves = false;
 
-		mShowThinking = settings.getBoolean("showThinking", false);
-		maxNumArrows = Integer.parseInt(settings.getString("thinkingArrows", "2"));
-		mShowBookHints = settings.getBoolean("bookHints", false);
+		mShowThinking = mSettings.getBoolean("showThinking", false);
+		maxNumArrows = Integer.parseInt(mSettings.getString("thinkingArrows", "2"));
+		mShowBookHints = mSettings.getBoolean("bookHints", false);
 
-		soundEnabled = settings.getBoolean("soundEnabled", false);
+		soundEnabled = mSettings.getBoolean("soundEnabled", false);
 	}
 
 	/**
@@ -277,8 +276,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
 
-		fab = (FloatingActionButton) findViewById(R.id.fab);
-		fab.setOnClickListener(new OnClickListener() {
+		mFab = (FloatingActionButton) findViewById(R.id.fab);
+		mFab.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				createNewGame();
@@ -286,9 +285,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		});
 
 		if (mGameController != null && mGameController.getGame() == null) {
-			fab.show();
+			mFab.show();
 		} else {
-			fab.hide();
+			mFab.hide();
 		}
 
 		thinkingInfoView = (TextView) findViewById(R.id.thinking_info);
@@ -349,10 +348,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				@Override
 				public void onGameStateReceived(EngineController controller, Game.Status status) {
 					if (status != Game.Status.ALIVE) {
-						fab.show();
+						mFab.show();
 						canResign = false;
 					} else {
-						fab.hide();
+						mFab.hide();
 						canResign = true;
 					}
 
@@ -363,10 +362,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			Game.Status status = mGameController.getGame().getGameStatus();
 
 			if (status != Game.Status.ALIVE) {
-				fab.show();
+				mFab.show();
 				canResign = false;
 			} else {
-				fab.hide();
+				mFab.hide();
 				canResign = true;
 			}
 		}
@@ -403,7 +402,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		if (mGameController instanceof EngineController) {
 			((EngineController) mGameController).setMaxDepth(
-					Integer.valueOf(settings.getString("difficultyDepth", "-1")));
+					Integer.valueOf(mSettings.getString("difficultyDepth2", "-1")));
 		} else if (mGameController instanceof BluetoothGameController) {
 			if (((BluetoothGameController) mGameController).isListening()) {
 				onWaitingForOpponent();
@@ -434,13 +433,17 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	protected void onPause() {
 		super.onPause();
 
-		if (mGameController != null && mGameController.getGame() != null) {
-			mGameController.pauseGame();
+		if (mGameController != null && mGameController.getGameMode() != null
+				&& mGameController.getGame() != null) {
+			if (!isChangingConfigurations()) {
+				mGameController.pauseGame();
+			}
+			
 			byte[] data = mGameController.getPersistableGameState();
-			Editor editor = settings.edit();
+			Editor editor = mSettings.edit();
 			String dataStr = byteArrToString(data);
-			editor.putInt("GameMode", mGameController.getGameMode().ordinal());
-			editor.putString("GameState", dataStr);
+			editor.putInt("GameMode2", mGameController.getGameMode().ordinal());
+			editor.putString("GameState2", dataStr);
 			editor.apply();
 		}
 
@@ -493,6 +496,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		final MenuItem stopAnalysisMenuItem = menu.findItem(R.id.item_stop_analysis);
 		final MenuItem flipBoardMenuItem = menu.findItem(R.id.item_flip_board);
 		final MenuItem recreateActivityMenuItem = menu.findItem(R.id.recreate_activity);
+		final MenuItem loadPgnMenuItem = menu.findItem(R.id.item_load_pgn_file);
 
 		recreateActivityMenuItem.setVisible(BuildConfig.DEBUG);
 
@@ -508,18 +512,18 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				&& mGameController.isOpponentThinking());
 		offerDrawMenuItem.setEnabled(isPlayerTurn);
 		resignMenuItem.setEnabled(isPlayerTurn);
-		stopGameMenuItem.setEnabled(gameIsAlive);
 
-		final boolean canAnalyze = hasGame && !isUsingBluetooth
-				&& mGameController.getGameMode() != GameMode.ANALYSIS;
+		final boolean canAnalyze = hasGame && !mGameController.isAnalyzing();
 		startAnalysisMenuItem.setVisible(canAnalyze);
 		stopAnalysisMenuItem.setVisible(hasGame && !canAnalyze && !isUsingBluetooth);
 		flipBoardMenuItem.setVisible(hasGame && !canAnalyze && !isUsingBluetooth);
 		resignMenuItem.setVisible(canResign && canAnalyze);
+		stopGameMenuItem.setEnabled(gameIsAlive && canAnalyze);
 
 		// stop game button is actually just a "feel good" resign button, although it can also
 		// be run while the computer is playing
 		stopGameMenuItem.setVisible(gameIsAlive && !(mGameController instanceof BluetoothGameController));
+		loadPgnMenuItem.setVisible(mGameController instanceof EngineController);
 
 		final boolean hasBluetooth = BluetoothAdapter.getDefaultAdapter() != null;
 
@@ -715,7 +719,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				mChessBoardView.setPosition(null);
 				moveListView.setText(null);
 				mStatusView.setText(null);
-				fab.show();
+				mFab.show();
 				break;
 			case R.id.item_about:
 				showDialog(ABOUT_DIALOG);
@@ -1042,7 +1046,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	static final int PERMISSIONS_REQUEST_READ_STORAGE = 0x44;
 
 	@Override
-	protected Dialog onCreateDialog(final int id) {
+	protected AlertDialog onCreateDialog(final int id) {
 		switch (id) {
 			case PROMOTE_DIALOG: {
 				final CharSequence[] items = {getString(R.string.queen),
@@ -1055,6 +1059,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 						mGameController.setPromotionChoice(PromotionPiece.values()[item]);
 					}
 				});
+
 				return builder.create();
 			}
 			case CLIPBOARD_DIALOG: {
@@ -1130,49 +1135,49 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				return builder.create();
 			}
 			case SELECT_MOVE_DIALOG: {
-				final Dialog dialog = new Dialog(this);
-				dialog.setContentView(R.layout.select_move_number);
-				dialog.setTitle(R.string.goto_move);
-				final EditText moveNrView = (EditText) dialog
-						.findViewById(R.id.selmove_number);
-				Button ok = (Button) dialog.findViewById(R.id.selmove_ok);
-				Button cancel = (Button) dialog.findViewById(R.id.selmove_cancel);
-				moveNrView.setText("1");
-				final Runnable gotoMove = new Runnable() {
-					public void run() {
-						try {
-							int moveNr = Integer.parseInt(moveNrView.getText()
-									.toString());
-							((EngineController) mGameController).goToMove(moveNr);
-							dialog.cancel();
-						} catch (NumberFormatException nfe) {
-							Toast.makeText(getApplicationContext(),
-									R.string.invalid_number_format,
-									Toast.LENGTH_SHORT).show();
-						}
-					}
-				};
-				moveNrView.setOnKeyListener(new OnKeyListener() {
-					public boolean onKey(View v, int keyCode, KeyEvent event) {
-						if ((event.getAction() == KeyEvent.ACTION_DOWN)
-								&& (keyCode == KeyEvent.KEYCODE_ENTER)) {
-							gotoMove.run();
-							return true;
-						}
-						return false;
-					}
-				});
-				ok.setOnClickListener(new OnClickListener() {
-					public void onClick(View v) {
-						gotoMove.run();
-					}
-				});
-				cancel.setOnClickListener(new OnClickListener() {
-					public void onClick(View v) {
-						dialog.cancel();
-					}
-				});
-				return dialog;
+//				final Dialog dialog = new Dialog(this);
+//				dialog.setContentView(R.layout.select_move_number);
+//				dialog.setTitle(R.string.goto_move);
+//				final EditText moveNrView = (EditText) dialog
+//						.findViewById(R.id.selmove_number);
+//				Button ok = (Button) dialog.findViewById(R.id.selmove_ok);
+//				Button cancel = (Button) dialog.findViewById(R.id.selmove_cancel);
+//				moveNrView.setText("1");
+//				final Runnable gotoMove = new Runnable() {
+//					public void run() {
+//						try {
+//							int moveNr = Integer.parseInt(moveNrView.getText()
+//									.toString());
+//							((EngineController) mGameController).goToMove(moveNr);
+//							dialog.cancel();
+//						} catch (NumberFormatException nfe) {
+//							Toast.makeText(getApplicationContext(),
+//									R.string.invalid_number_format,
+//									Toast.LENGTH_SHORT).show();
+//						}
+//					}
+//				};
+//				moveNrView.setOnKeyListener(new OnKeyListener() {
+//					public boolean onKey(View v, int keyCode, KeyEvent event) {
+//						if ((event.getAction() == KeyEvent.ACTION_DOWN)
+//								&& (keyCode == KeyEvent.KEYCODE_ENTER)) {
+//							gotoMove.run();
+//							return true;
+//						}
+//						return false;
+//					}
+//				});
+//				ok.setOnClickListener(new OnClickListener() {
+//					public void onClick(View v) {
+//						gotoMove.run();
+//					}
+//				});
+//				cancel.setOnClickListener(new OnClickListener() {
+//					public void onClick(View v) {
+//						dialog.cancel();
+//					}
+//				});
+//				return dialog;
 			}
 			case SELECT_BOOK_DIALOG: {
 				String[] fileNames = findFilesInDirectory(BOOK_DIR);
@@ -1193,7 +1198,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				builder.setSingleChoiceItems(items, defaultItem,
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int item) {
-								Editor editor = settings.edit();
+								Editor editor = mSettings.edit();
 								String bookFile = "";
 								if (item < numFiles)
 									bookFile = finalItems[item].toString();
@@ -1215,7 +1220,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				}
 
 				int defaultItem = 0;
-				String currentPGNFile = settings.getString("currentPGNFile", "");
+				String currentPGNFile = mSettings.getString("currentPGNFile2", "");
 				for (int i = 0; i < numFiles; i++) {
 					if (currentPGNFile.equals(fileNames[i])) {
 						defaultItem = i;
@@ -1228,9 +1233,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				builder.setSingleChoiceItems(fileNames, defaultItem,
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int item) {
-								Editor editor = settings.edit();
+								Editor editor = mSettings.edit();
 								String pgnFile = fileNames[item];
-								editor.putString("currentPGNFile", pgnFile);
+								editor.putString("currentPGNFile2", pgnFile);
 								editor.apply();
 								String sep = File.separator;
 								String pathName = PGN_DIR + sep + pgnFile;
@@ -1426,7 +1431,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		moveListView.setText(getPGNTokenReceiver().getSpannableData());
 
 		// show the FAB again
-		fab.show();
+		mFab.show();
 		canResign = false;
 
 		ActivityCompat.invalidateOptionsMenu(this);
@@ -1456,7 +1461,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		mStatusView.setText(hint);
 
 		// hide the FAB since presumably the game is about to start
-		fab.hide();
+		mFab.hide();
 	}
 
 	@Override
