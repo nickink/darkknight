@@ -944,6 +944,12 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	}
 
 	@Override
+	public void onAnalysisInterrupted() {
+		Toast.makeText(this, R.string.analysis_was_interrupted, Toast.LENGTH_SHORT).show();
+		invalidateUi();
+	}
+
+	@Override
 	public void onGamePaused() {
 
 	}

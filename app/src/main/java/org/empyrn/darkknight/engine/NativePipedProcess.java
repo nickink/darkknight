@@ -27,7 +27,7 @@ public class NativePipedProcess {
 	/** Shut down process. */
 	public final void shutDown() {
 		if (processAlive) {
-			writeLineToProcess("quit");
+			writeLineToProcess("quit", true);
 			processAlive = false;
 		}
 	}
@@ -56,11 +56,16 @@ public class NativePipedProcess {
 		return ret;
 	}
 
-	/** Write a line to the process. \n will be added automatically. */
 	public final synchronized void writeLineToProcess(String data) {
-		if (Looper.getMainLooper().equals(Looper.myLooper())) {
-			Log.w("UCI", "UCI executing instruction " + data + " on the main thread -- this is not recommended");
-		}
+		writeLineToProcess(data, false);
+	}
+
+	/** Write a line to the process. \n will be added automatically. */
+	private synchronized void writeLineToProcess(String data, boolean isInterrupt) {
+//		if (!isInterrupt && Looper.getMainLooper().equals(Looper.myLooper())) {
+//			Log.w("UCI", "UCI executing instruction " + data + " on the main thread -- this is not recommended");
+//			throw new IllegalStateException();
+//		}
 
 		if (BuildConfig.DEBUG) {
 			Log.i("DK.Controller -> UCI (" + this.toString() + ")", data);

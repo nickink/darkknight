@@ -22,16 +22,40 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * A computer algorithm player.
  */
 public class EnginePlayer {
-	public final String mEngineName;
-
 	private static NativePipedProcess s_npp = null;
-
+	private static volatile EnginePlayer playerInstance;
 	private final NativePipedProcess npp;
+	private final AtomicBoolean shouldStopSearch = new AtomicBoolean(false);
+	private String mEngineName;
 	private Book book;
 	private boolean newGame = false;
+	private int statCurrDepth = 0;
+	private int statPVDepth = 0;
+	private int statScore = 0;
+	private boolean statIsMate = false;
+	private boolean statUpperBound = false;
+	private boolean statLowerBound = false;
+	private int statTime = 0;
+	private int statNodes = 0;
+	private int statNps = 0;
+	private ArrayList<String> statPV = new ArrayList<>();
+	private String statCurrMove = "";
+	private int statCurrMoveNr = 0;
+	private boolean depthModified = false;
+	private boolean currMoveModified = false;
+	private boolean pvModified = false;
+	private boolean statsModified = false;
 
-	private static volatile EnginePlayer playerInstance;
 
+	private EnginePlayer() {
+		if (s_npp == null) {
+			s_npp = new NativePipedProcess();
+			s_npp.initialize();
+		}
+
+		npp = s_npp;
+		book = new Book(false);
+	}
 
 	public static synchronized void prepareInstance() {
 		if (playerInstance == null) {
@@ -45,13 +69,72 @@ public class EnginePlayer {
 		return playerInstance;
 	}
 
-	private EnginePlayer() {
+	/**
+	 * Convert a string to tokens by splitting at whitespace characters.
+	 */
+	private static String[] tokenize(String cmdLine) {
+		cmdLine = cmdLine.trim();
+		return cmdLine.split("\\s+");
+	}
+
+	/**
+	 * Stop the engine process and clear the player from memory.
+	 */
+	public static synchronized void shutdownEngine() {
 		if (s_npp == null) {
-			s_npp = new NativePipedProcess();
-			s_npp.initialize();
+			return;
 		}
 
-		npp = s_npp;
+		s_npp.shutDown();
+		while (s_npp.isProcessAlive()) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		s_npp = null;
+
+		Log.i(EnginePlayer.class.getSimpleName(), "Shut down engine process");
+
+		if (playerInstance != null) {
+			playerInstance = null;
+
+			Log.i(EnginePlayer.class.getSimpleName(), "Removed player instance");
+		}
+	}
+
+	private static boolean canClaimDraw50(Position pos) {
+		return (pos.halfMoveClock >= 100);
+	}
+
+	private static boolean canClaimDrawRep(Position pos, long[] posHashList, int posHashListSize,
+	                                       int posHashFirstNew) {
+		int reps = 0;
+		for (int i = posHashListSize - 4; i >= 0; i -= 2) {
+			if (pos.zobristHash() == posHashList[i]) {
+				reps++;
+				if (i >= posHashFirstNew) {
+					reps++;
+					break;
+				}
+			}
+		}
+		return (reps >= 2);
+	}
+
+	private boolean isPrepared() {
+		return mEngineName != null;
+	}
+
+	private void checkPrepared() {
+		if (!isPrepared()) {
+			throw new IllegalStateException("Engine is not ready");
+		}
+	}
+
+	private void prepare() {
 		npp.writeLineToProcess("uci");
 
 		int timeout = 1000;
@@ -88,8 +171,12 @@ public class EnginePlayer {
 		npp.writeLineToProcess("setoption name Space value 200");
 		npp.writeLineToProcess("ucinewgame");
 		syncReady();
+	}
 
-		book = new Book(false);
+	private void prepareIfNeeded() {
+		if (!isPrepared()) {
+			prepare();
+		}
 	}
 
 	@NonNull
@@ -100,14 +187,6 @@ public class EnginePlayer {
 	@Deprecated
 	public final void setBookFileName(String bookFileName) {
 		book.setBookFileName(bookFileName);
-	}
-
-	/**
-	 * Convert a string to tokens by splitting at whitespace characters.
-	 */
-	private static String[] tokenize(String cmdLine) {
-		cmdLine = cmdLine.trim();
-		return cmdLine.split("\\s+");
 	}
 
 	private void syncReady() {
@@ -133,34 +212,12 @@ public class EnginePlayer {
 	 * marked dirty.
 	 */
 	public final void maybeNewGame() {
+		checkPrepared();
+
 		if (newGame) {
 			newGame = false;
 			npp.writeLineToProcess("ucinewgame");
 			syncReady();
-		}
-	}
-
-	/**
-	 * Stop the engine process and clear the player from memory.
-	 */
-	public static synchronized void shutdownEngine() {
-		s_npp.shutDown();
-		while (s_npp.isProcessAlive()) {
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		s_npp = null;
-
-		Log.i(EnginePlayer.class.getSimpleName(), "Shut down engine process");
-
-		if (playerInstance != null) {
-			playerInstance = null;
-
-			Log.i(EnginePlayer.class.getSimpleName(), "Removed player instance");
 		}
 	}
 
@@ -180,6 +237,7 @@ public class EnginePlayer {
 	                             boolean drawOffer,
 	                             int wTime, int bTime, int inc, int movesToGo, int maxDepth,
 	                             @NonNull final SearchListener searchListener) throws InterruptedException {
+		prepareIfNeeded();
 		searchListener.notifyBookInfo("", null);
 
 		// Set up for draw detection
@@ -276,7 +334,7 @@ public class EnginePlayer {
 
 		clearInfo();
 
-		boolean stopSent = false;
+//		boolean stopSent = false;
 
 		while (true) {
 			if (!npp.isProcessAlive()) {
@@ -284,18 +342,18 @@ public class EnginePlayer {
 				throw new InterruptedException("UCI engine process has been shut down");
 			}
 
-			if (shouldStopSearch.get() && !stopSent) {
-				Log.i(getClass().getSimpleName(), this + " stopping search for " + npp.toString());
-				// if the engine should stop, stop it
-				npp.writeLineToProcess("stop");
-				stopSent = true;
-			}
+//			if (shouldStopSearch.get() && !stopSent) {
+//				Log.i(getClass().getSimpleName(), this + " stopping search for " + npp.toString());
+//				// if the engine should stop, stop it
+//				npp.writeLineToProcess("stop");
+//				stopSent = true;
+//			}
 
 			String s = npp.readLineFromProcess(2000);
 
 			if (s == null || s.length() == 0) {
 				Log.e(getClass().getSimpleName(), "Received empty input from engine");
-				return null;
+				return "";
 			} else {
 				Log.d(getClass().getSimpleName(), "Received data from engine: " + s);
 			}
@@ -315,21 +373,19 @@ public class EnginePlayer {
 		return new Pair<>(bi.first, bi.second);
 	}
 
-
-	private final AtomicBoolean shouldStopSearch = new AtomicBoolean(false);
-
 	public final boolean isStoppingSearch() {
 		return shouldStopSearch.get();
 	}
 
 	public final String analyze(Position prevPos, @NonNull SearchListener searchListener,
-	                          ArrayList<Move> mList, Position currPos, boolean drawOffer) throws InterruptedException {
+	                            ArrayList<Move> mList, Position currPos, boolean drawOffer) throws InterruptedException {
 		if (!npp.isProcessAlive()) {
 			throw new IllegalStateException("Engine process is not initialized");
 		} else if (shouldStopSearch.get()) {
 			throw new IllegalStateException("shouldStopSearch cannot be true when starting analysis");
 		}
 
+		prepareIfNeeded();
 
 		Pair<String, ArrayList<Move>> bi = getBookHints(currPos);
 		searchListener.notifyBookInfo(bi.first, bi.second);
@@ -387,43 +443,6 @@ public class EnginePlayer {
 
 		return drawStr;
 	}
-
-	private static boolean canClaimDraw50(Position pos) {
-		return (pos.halfMoveClock >= 100);
-	}
-
-	private static boolean canClaimDrawRep(Position pos, long[] posHashList, int posHashListSize, int posHashFirstNew) {
-		int reps = 0;
-		for (int i = posHashListSize - 4; i >= 0; i -= 2) {
-			if (pos.zobristHash() == posHashList[i]) {
-				reps++;
-				if (i >= posHashFirstNew) {
-					reps++;
-					break;
-				}
-			}
-		}
-		return (reps >= 2);
-	}
-
-
-	private int statCurrDepth = 0;
-	private int statPVDepth = 0;
-	private int statScore = 0;
-	private boolean statIsMate = false;
-	private boolean statUpperBound = false;
-	private boolean statLowerBound = false;
-	private int statTime = 0;
-	private int statNodes = 0;
-	private int statNps = 0;
-	private ArrayList<String> statPV = new ArrayList<>();
-	private String statCurrMove = "";
-	private int statCurrMoveNr = 0;
-
-	private boolean depthModified = false;
-	private boolean currMoveModified = false;
-	private boolean pvModified = false;
-	private boolean statsModified = false;
 
 	private void clearInfo() {
 		depthModified = false;
@@ -523,13 +542,13 @@ public class EnginePlayer {
 	}
 
 	public final void stopSearch() {
-		if (shouldStopSearch.get()) {
-			// search is already being stopped
+		if (!isPrepared()) {
 			return;
 		}
 
-//		if (Looper.getMainLooper().equals(Looper.myLooper())) {
-//			throw new IllegalStateException("stopSearch() should not be called on the main thread");
+//		if (shouldStopSearch.get()) {
+//			// search is already being stopped
+//			return;
 //		}
 
 		Log.i(getClass().getSimpleName(), this + " received shouldStopSearch for " + npp.toString());

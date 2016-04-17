@@ -83,4 +83,7 @@ public interface GUIInterface {
 
 	@Deprecated
 	void dismissMessage();
+
+	@Deprecated
+	void onAnalysisInterrupted();
 }

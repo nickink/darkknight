@@ -585,7 +585,7 @@ public class EngineController extends AbstractGameController implements GameCont
 
 		stopAnalysis();
 		if (getGameMode() == GameMode.ANALYSIS) {
-			startAnalysisDelayed(200);
+			startAnalysisDelayed(300);
 		} else {
 			resetComputerInstanceAsync();
 		}
@@ -994,8 +994,12 @@ public class EngineController extends AbstractGameController implements GameCont
 			computerThread = null;
 			Log.i(getClass().getSimpleName(), "Computer move selection thread stopped");
 
-			if (s != null) {
+			if (s != null && !s.equals("")) {
 				onEngineMoveMade(s);
+			} else if (s != null && s.equals("")) {
+				if (getGui() != null) {
+					getGui().onAnalysisInterrupted();
+				}
 			}
 
 			if (getGui() != null) {

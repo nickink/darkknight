@@ -356,4 +356,5 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="enable_bluetooth_to_play">Enable Bluetooth to play.</string>
 	<string name="switched_to_playing_against_the_computer">Switched to playing against the computer.</string>
 	<string name="switched_to_bluetooth_play">Switched to Bluetooth play.</string>
+	<string name="analysis_was_interrupted">Analysis was interrupted and had to be stopped.</string>
 </resources>
