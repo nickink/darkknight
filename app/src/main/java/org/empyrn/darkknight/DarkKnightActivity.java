@@ -19,6 +19,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -182,8 +183,16 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		initUi();
 
-		if (mGameController.getGameMode() == null) {
+		String currentPgnFile = getCurrentPgnFile();
+		if (mGameController.getGameMode() == null && TextUtils.isEmpty(currentPgnFile)) {
 			createNewGame();
+		} else if (!TextUtils.isEmpty(currentPgnFile)) {
+			resetChessBoardView();
+			setBoardFlip();
+
+			mGameController.setGameMode(GameMode.ANALYSIS);
+			mGameController.resumeGame();
+			invalidateUi();
 		}
 	}
 
@@ -231,11 +240,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		super.onSaveInstanceState(outState);
 
 		if (mGameController == null) {
-			return;
-		}
-
-		if (!isChangingConfigurations() &&  mGameController.getGameMode() == GameMode.ANALYSIS) {
-			// don't attempt to retain state for analysis when not changing configurations
 			return;
 		}
 
@@ -452,11 +456,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				&& mGameController.getGame() != null) {
 			if (!isChangingConfigurations()) {
 				mGameController.pauseGame();
-
-				if (mGameController.getGame() != null && mGameController.getGameMode() == GameMode.ANALYSIS) {
-					mGameController.setGameMode(mGameController.getGame().currPos().whiteMove
-							? GameMode.PLAYER_WHITE : GameMode.PLAYER_BLACK);
-				}
 			}
 
 			byte[] data = mGameController.getPersistableGameState();
@@ -928,6 +927,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		new Handler().post(new Runnable() {
 			@Override
 			public void run() {
+				if (mGameController.isResumed()) {
+					return;
+				}
+
 				resetChessBoardView();
 				setBoardFlip();
 				invalidateUi();
@@ -1080,6 +1083,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	static final int CONFIRM_RESIGN_DIALOG = 7;
 
 	static final int PERMISSIONS_REQUEST_READ_STORAGE = 0x44;
+
+	@Nullable
+	private String getCurrentPgnFile() {
+		return mSettings.getString("currentPGNFile2", null);
+	}
 
 	@Override
 	protected AlertDialog onCreateDialog(final int id) {

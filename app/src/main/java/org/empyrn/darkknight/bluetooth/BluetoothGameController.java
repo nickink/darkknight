@@ -239,6 +239,11 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	@Override
+	public boolean isResumed() {
+		return isGameActive();
+	}
+
+	@Override
 	public boolean isAnalyzing() {
 		return false;
 	}

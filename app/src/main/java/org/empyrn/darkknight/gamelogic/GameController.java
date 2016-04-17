@@ -65,6 +65,7 @@ public interface GameController {
 	boolean canUndoMove();
 	boolean canRedoMove();
 
+	boolean isResumed();
 	boolean isAnalyzing();
 
 	String getStatusText();

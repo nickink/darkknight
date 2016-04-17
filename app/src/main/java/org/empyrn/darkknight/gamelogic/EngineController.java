@@ -280,6 +280,11 @@ public class EngineController extends AbstractGameController implements GameCont
 	}
 
 	@Override
+	public boolean isResumed() {
+		return !guiPaused;
+	}
+
+	@Override
 	public void resumeGame() {
 		if (game == null) {
 			throw new IllegalStateException("Game hasn't been initialized yet");
@@ -297,6 +302,8 @@ public class EngineController extends AbstractGameController implements GameCont
 			getGui().setStatusString(getStatusText());
 			getGui().onGameResumed();
 		}
+
+		guiPaused = false;
 	}
 
 	private boolean guiPaused = false;
