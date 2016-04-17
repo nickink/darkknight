@@ -732,7 +732,7 @@ public class EngineController extends AbstractGameController implements GameCont
 	}
 
 	@Override
-	protected String getStatusText() {
+	public String getStatusText() {
 		if (game == null) {
 			return null;
 		}
@@ -1086,7 +1086,7 @@ public class EngineController extends AbstractGameController implements GameCont
 		}
 
 		protected void stop() {
-			// stopGame the search
+			// stop the search
 			enginePlayer.stopSearch();
 		}
 	}

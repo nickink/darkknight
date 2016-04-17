@@ -66,4 +66,6 @@ public interface GameController {
 	boolean canRedoMove();
 
 	boolean isAnalyzing();
+
+	String getStatusText();
 }

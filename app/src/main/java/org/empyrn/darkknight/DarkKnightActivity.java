@@ -388,6 +388,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		} else {
 			disableChessBoard();
 		}
+
+		mStatusView.setText(mGameController != null ? mGameController.getStatusText() : null);
 	}
 
 
@@ -486,6 +488,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		}
 
 		mChessBoardView = null;
+		mStatusView = null;
 	}
 
 	@Override
@@ -956,6 +959,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	@Override
 	public void onGameStopped() {
+		if (mStatusView != null) {
+			mStatusView.setText(null);
+		}
+
 		invalidateUi();
 	}
 

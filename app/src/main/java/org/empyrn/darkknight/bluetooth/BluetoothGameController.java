@@ -66,7 +66,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	@Override
-	protected String getStatusText() {
+	public String getStatusText() {
 		if (game == null) {
 			return null;
 		}

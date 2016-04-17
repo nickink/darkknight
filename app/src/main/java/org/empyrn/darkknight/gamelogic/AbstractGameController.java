@@ -164,7 +164,8 @@ public abstract class AbstractGameController implements GameController {
 		getGameTextListener().setCurrent(getGame().getTree().currentNode);
 	}
 
-	protected @Deprecated abstract String getStatusText();
+	@Deprecated
+	public abstract String getStatusText();
 
 	protected void onMoveMade() {
 		if (getGame() == null) {
