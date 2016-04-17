@@ -504,6 +504,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.options_menu, menu);
+
+		menu.removeItem(R.id.item_goto_move);           // don't allow go-to move for now
+
 		return true;
 	}
 
