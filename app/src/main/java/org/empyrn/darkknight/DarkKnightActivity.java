@@ -1,6 +1,7 @@
 package org.empyrn.darkknight;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -182,6 +183,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		}
 
 		initUi();
+
+		if (mGameController != null && mGameController.isGameActive()) {
+			clearCurrentPgnGame();
+		}
 
 		String currentPgnFile = getCurrentPgnFile();
 		if (mGameController.getGameMode() == null && TextUtils.isEmpty(currentPgnFile)) {
@@ -1325,8 +1330,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		return null;
 	}
 
+	@SuppressLint("CommitPrefEdits")
 	private void clearCurrentPgnGame() {
-		mSettings.edit().remove("currentPGNFile2").apply();
+		mSettings.edit().remove("currentPGNFile2").commit();
 	}
 
 	private static String[] findFilesInDirectory(String dirName) {
