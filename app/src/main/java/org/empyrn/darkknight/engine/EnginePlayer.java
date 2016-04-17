@@ -26,7 +26,7 @@ public class EnginePlayer {
 	private static volatile EnginePlayer playerInstance;
 	private final NativePipedProcess npp;
 	private final AtomicBoolean shouldStopSearch = new AtomicBoolean(false);
-	private String mEngineName;
+	private final String mEngineName;
 	private Book book;
 	private boolean newGame = false;
 	private int statCurrDepth = 0;
@@ -55,6 +55,44 @@ public class EnginePlayer {
 
 		npp = s_npp;
 		book = new Book(false);
+
+
+		npp.writeLineToProcess("uci");
+
+		int timeout = 1000;
+		String engineName = null;
+		while (true) {
+			String s = npp.readLineFromProcess(timeout);
+			String[] tokens = tokenize(s);
+			if (tokens[0].equals("uciok")) {
+				break;
+			} else if (tokens[0].equals("id")) {
+				if (tokens[1].equals("name")) {
+					engineName = "";
+					for (int i = 2; i < tokens.length; i++) {
+						if (engineName.length() > 0) {
+							engineName += " ";
+						}
+
+						engineName += tokens[i];
+					}
+				}
+			}
+		}
+
+		if (engineName == null) {
+			throw new IllegalStateException("Engine could not be initialized");
+		}
+
+		mEngineName = engineName;
+		Log.i(getClass().getSimpleName(), "Created new engine player instance: " + mEngineName);
+
+		npp.writeLineToProcess("setoption name Hash value 16");
+		npp.writeLineToProcess("setoption name Ponder value false");
+		npp.writeLineToProcess("setoption name Aggressiveness value 200");
+		npp.writeLineToProcess("setoption name Space value 200");
+		npp.writeLineToProcess("ucinewgame");
+		syncReady();
 	}
 
 	public static synchronized void prepareInstance() {
@@ -134,49 +172,49 @@ public class EnginePlayer {
 		}
 	}
 
-	private void prepare() {
-		npp.writeLineToProcess("uci");
-
-		int timeout = 1000;
-		String engineName = null;
-		while (true) {
-			String s = npp.readLineFromProcess(timeout);
-			String[] tokens = tokenize(s);
-			if (tokens[0].equals("uciok")) {
-				break;
-			} else if (tokens[0].equals("id")) {
-				if (tokens[1].equals("name")) {
-					engineName = "";
-					for (int i = 2; i < tokens.length; i++) {
-						if (engineName.length() > 0) {
-							engineName += " ";
-						}
-
-						engineName += tokens[i];
-					}
-				}
-			}
-		}
-
-		if (engineName == null) {
-			throw new IllegalStateException("Engine could not be initialized");
-		}
-
-		mEngineName = engineName;
-		Log.i(getClass().getSimpleName(), "Created new engine player instance: " + mEngineName);
-
-		npp.writeLineToProcess("setoption name Hash value 16");
-		npp.writeLineToProcess("setoption name Ponder value false");
-		npp.writeLineToProcess("setoption name Aggressiveness value 200");
-		npp.writeLineToProcess("setoption name Space value 200");
-		npp.writeLineToProcess("ucinewgame");
-		syncReady();
-	}
+//	private void prepare() {
+//		npp.writeLineToProcess("uci");
+//
+//		int timeout = 1000;
+//		String engineName = null;
+//		while (true) {
+//			String s = npp.readLineFromProcess(timeout);
+//			String[] tokens = tokenize(s);
+//			if (tokens[0].equals("uciok")) {
+//				break;
+//			} else if (tokens[0].equals("id")) {
+//				if (tokens[1].equals("name")) {
+//					engineName = "";
+//					for (int i = 2; i < tokens.length; i++) {
+//						if (engineName.length() > 0) {
+//							engineName += " ";
+//						}
+//
+//						engineName += tokens[i];
+//					}
+//				}
+//			}
+//		}
+//
+//		if (engineName == null) {
+//			throw new IllegalStateException("Engine could not be initialized");
+//		}
+//
+//		mEngineName = engineName;
+//		Log.i(getClass().getSimpleName(), "Created new engine player instance: " + mEngineName);
+//
+//		npp.writeLineToProcess("setoption name Hash value 16");
+//		npp.writeLineToProcess("setoption name Ponder value false");
+//		npp.writeLineToProcess("setoption name Aggressiveness value 200");
+//		npp.writeLineToProcess("setoption name Space value 200");
+//		npp.writeLineToProcess("ucinewgame");
+//		syncReady();
+//	}
 
 	private void prepareIfNeeded() {
-		if (!isPrepared()) {
-			prepare();
-		}
+//		if (!isPrepared()) {
+//			prepare();
+//		}
 	}
 
 	@NonNull

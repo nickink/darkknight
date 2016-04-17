@@ -890,7 +890,16 @@ public class EngineController extends AbstractGameController implements GameCont
 		while (analysisThread != null) {
 			if (elapsed > 2000) {
 				Log.e(getClass().getSimpleName(), "Analysis thread overheated");
-				System.exit(1);
+				analysisThread.cancel(true);
+
+				if (getGui() != null) {
+					getGui().onAnalysisInterrupted();
+				}
+			}
+
+			if (elapsed > 5000) {
+				Log.e(getClass().getSimpleName(), "Analysis thread super-overheated");
+				android.os.Process.killProcess(android.os.Process.myPid());
 			}
 
 			try {
