@@ -1120,6 +1120,11 @@ public class EngineController extends AbstractGameController implements GameCont
 		return analysisThread != null || mDelayedStartAnalysisTask != null || isAnalysisQuickPause;
 	}
 
+	@Deprecated
+	public boolean isAnalysisQuickPause() {
+		return isAnalysisQuickPause;
+	}
+
 
 	public interface AsyncGameStateCheckListener {
 		void onGameStateReceived(EngineController controller, Game.Status status);

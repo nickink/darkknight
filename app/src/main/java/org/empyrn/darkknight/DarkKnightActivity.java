@@ -187,12 +187,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		if (mGameController.getGameMode() == null && TextUtils.isEmpty(currentPgnFile)) {
 			createNewGame();
 		} else if (!TextUtils.isEmpty(currentPgnFile)) {
-			resetChessBoardView();
-			setBoardFlip();
-
 			mGameController.setGameMode(GameMode.ANALYSIS);
-			mGameController.resumeGame();
-			invalidateUi();
 		}
 	}
 
@@ -335,6 +330,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		mPreviousMoveButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				if (mGameController == null || mGameController.isAnalysisQuickPause()) {
+					return;
+				}
+
 				((EngineController) mGameController).undoMove();
 			}
 		});
@@ -343,6 +342,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		mNextMoveButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				if (mGameController == null || mGameController.isAnalysisQuickPause()) {
+					return;
+				}
+
 				((EngineController) mGameController).redoMove();
 			}
 		});
@@ -422,6 +425,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		if (mGameController instanceof EngineController) {
 			((EngineController) mGameController).setMaxDepth(
 					Integer.valueOf(mSettings.getString("difficultyDepth2", "3")));
+
+			if (mGameController.getGameMode() == GameMode.ANALYSIS && !mGameController.isAnalyzing()) {
+				((EngineController) mGameController).switchToAnalysisMode();
+			}
 		} else if (mGameController instanceof BluetoothGameController) {
 			if (((BluetoothGameController) mGameController).isListening()) {
 				onWaitingForOpponent();

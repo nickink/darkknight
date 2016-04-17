@@ -67,6 +67,7 @@ public interface GameController {
 
 	boolean isResumed();
 	boolean isAnalyzing();
+	boolean isAnalysisQuickPause();
 
 	String getStatusText();
 }

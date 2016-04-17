@@ -249,6 +249,11 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	@Override
+	public boolean isAnalysisQuickPause() {
+		return false;
+	}
+
+	@Override
 	public void acceptDrawOffer() {
 		if (getGame() == null) {
 			throw new IllegalStateException("Game is not initialized");
