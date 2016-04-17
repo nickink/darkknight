@@ -136,10 +136,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			}
 		});
 
-		if (savedInstanceState != null) {
-			boardFlippedForAnalysis = savedInstanceState.getBoolean("BOARD_FLIPPED_FOR_ANALYSIS", false);
-		}
-
 		if (savedInstanceState == null || savedInstanceState.getInt("ControllerMode", MODE_ENGINE) == MODE_ENGINE) {
 			if (!initEngineController()) {
 				return;
@@ -233,8 +229,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-
-		outState.putBoolean("BOARD_FLIPPED_FOR_ANALYSIS", boardFlippedForAnalysis);
 
 		if (mGameController == null) {
 			return;
@@ -453,6 +447,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				&& mGameController.getGame() != null) {
 			if (!isChangingConfigurations()) {
 				mGameController.pauseGame();
+
+				if (mGameController.getGame() != null && mGameController.getGameMode() == GameMode.ANALYSIS) {
+					mGameController.setGameMode(mGameController.getGame().currPos().whiteMove
+							? GameMode.PLAYER_WHITE : GameMode.PLAYER_BLACK);
+				}
 			}
 
 			byte[] data = mGameController.getPersistableGameState();
@@ -500,10 +499,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.options_menu, menu);
-
-		// remove go to move item for now
-		menu.removeItem(R.id.item_goto_move);
-
 		return true;
 	}
 
