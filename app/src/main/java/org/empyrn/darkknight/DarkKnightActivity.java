@@ -136,6 +136,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			}
 		});
 
+		if (savedInstanceState != null) {
+			boardFlippedForAnalysis = savedInstanceState.getBoolean("BOARD_FLIPPED_FOR_ANALYSIS", false);
+		}
+
 		if (savedInstanceState == null || savedInstanceState.getInt("ControllerMode", MODE_ENGINE) == MODE_ENGINE) {
 			if (!initEngineController()) {
 				return;
@@ -229,6 +233,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
+
+		outState.putBoolean("BOARD_FLIPPED_FOR_ANALYSIS", boardFlippedForAnalysis);
 
 		if (mGameController == null) {
 			return;
