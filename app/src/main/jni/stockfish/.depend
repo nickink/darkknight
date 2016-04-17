@@ -1,0 +1,68 @@
+application.o: application.cpp bitboard.h direction.h square.h color.h \
+  misc.h application.h types.h piece.h endgame.h position.h move.h \
+  value.h scale.h evaluate.h material.h pawns.h mersenne.h movepick.h \
+  depth.h history.h search.h thread.h lock.h ucioption.h
+bitboard.o: bitboard.cpp bitboard.h direction.h square.h color.h misc.h \
+  application.h types.h piece.h bitcount.h
+pawns.o: pawns.cpp bitcount.h types.h pawns.h bitboard.h direction.h \
+  square.h color.h misc.h application.h piece.h value.h position.h \
+  move.h
+material.o: material.cpp material.h endgame.h position.h bitboard.h \
+  direction.h square.h color.h misc.h application.h types.h piece.h \
+  move.h value.h scale.h
+endgame.o: endgame.cpp bitbase.h types.h bitcount.h endgame.h position.h \
+  bitboard.h direction.h square.h color.h misc.h application.h piece.h \
+  move.h value.h scale.h
+evaluate.o: evaluate.cpp bitcount.h types.h evaluate.h material.h \
+  endgame.h position.h bitboard.h direction.h square.h color.h misc.h \
+  application.h piece.h move.h value.h scale.h pawns.h thread.h lock.h \
+  movepick.h depth.h history.h search.h ucioption.h
+main.o: main.cpp benchmark.h bitcount.h types.h misc.h application.h \
+  uci.h
+misc.o: misc.cpp bitcount.h types.h misc.h application.h thread.h lock.h \
+  movepick.h depth.h history.h move.h piece.h color.h square.h value.h \
+  position.h bitboard.h direction.h search.h
+move.o: move.cpp move.h misc.h application.h types.h piece.h color.h \
+  square.h position.h bitboard.h direction.h value.h
+movegen.o: movegen.cpp bitcount.h types.h movegen.h position.h bitboard.h \
+  direction.h square.h color.h misc.h application.h piece.h move.h \
+  value.h
+history.o: history.cpp history.h depth.h move.h misc.h application.h \
+  types.h piece.h color.h square.h value.h
+movepick.o: movepick.cpp history.h depth.h move.h misc.h application.h \
+  types.h piece.h color.h square.h value.h movegen.h position.h \
+  bitboard.h direction.h movepick.h search.h
+search.o: search.cpp book.h move.h misc.h application.h types.h piece.h \
+  color.h square.h position.h bitboard.h direction.h value.h evaluate.h \
+  material.h endgame.h scale.h pawns.h history.h depth.h movegen.h \
+  movepick.h lock.h san.h search.h thread.h tt.h ucioption.h
+piece.o: piece.cpp piece.h color.h square.h misc.h application.h types.h
+position.o: position.cpp bitcount.h types.h mersenne.h movegen.h \
+  position.h bitboard.h direction.h square.h color.h misc.h \
+  application.h piece.h move.h value.h movepick.h depth.h history.h \
+  psqtab.h san.h tt.h ucioption.h
+direction.o: direction.cpp direction.h square.h color.h misc.h \
+  application.h types.h
+tt.o: tt.cpp movegen.h position.h bitboard.h direction.h square.h color.h \
+  misc.h application.h types.h piece.h move.h value.h tt.h depth.h
+value.o: value.cpp value.h piece.h color.h square.h misc.h application.h \
+  types.h
+uci.o: uci.cpp book.h move.h misc.h application.h types.h piece.h color.h \
+  square.h position.h bitboard.h direction.h value.h evaluate.h \
+  material.h endgame.h scale.h pawns.h movegen.h san.h search.h depth.h \
+  uci.h ucioption.h
+ucioption.o: ucioption.cpp misc.h application.h types.h thread.h lock.h \
+  movepick.h depth.h history.h move.h piece.h color.h square.h value.h \
+  position.h bitboard.h direction.h search.h ucioption.h
+mersenne.o: mersenne.cpp mersenne.h types.h
+book.o: book.cpp book.h move.h misc.h application.h types.h piece.h \
+  color.h square.h position.h bitboard.h direction.h value.h mersenne.h \
+  movegen.h
+bitbase.o: bitbase.cpp bitbase.h types.h bitboard.h direction.h square.h \
+  color.h misc.h application.h piece.h move.h
+san.o: san.cpp history.h depth.h move.h misc.h application.h types.h \
+  piece.h color.h square.h value.h movepick.h position.h bitboard.h \
+  direction.h san.h
+benchmark.o: benchmark.cpp benchmark.h search.h depth.h move.h misc.h \
+  application.h types.h piece.h color.h square.h value.h thread.h lock.h \
+  movepick.h history.h position.h bitboard.h direction.h ucioption.h

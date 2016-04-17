@@ -1,6 +1,9 @@
 package org.empyrn.darkknight.engine;
 
+import android.os.Looper;
 import android.util.Log;
+
+import org.empyrn.darkknight.BuildConfig;
 
 public class NativePipedProcess {
 	static {
@@ -47,7 +50,7 @@ public class NativePipedProcess {
 		}
 
 		if (ret.length() > 0) {
-			Log.d("DK.UCI -> Controller", ret);
+			Log.d("DK.UCI (" + this.toString() + ") -> Controller", ret);
 		}
 
 		return ret;
@@ -55,13 +58,13 @@ public class NativePipedProcess {
 
 	/** Write a line to the process. \n will be added automatically. */
 	public final synchronized void writeLineToProcess(String data) {
-		Log.i("DK.Controller -> UCI", data);
+		if (Looper.getMainLooper().equals(Looper.myLooper())) {
+			Log.w("UCI", "UCI executing instruction " + data + " on the main thread -- this is not recommended");
+		}
 
-//		try {
-//			Thread.sleep(1000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
+		if (BuildConfig.DEBUG) {
+			Log.i("DK.Controller -> UCI (" + this.toString() + ")", data);
+		}
 
 		writeToProcess(data + "\n");
 	}

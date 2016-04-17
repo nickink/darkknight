@@ -410,7 +410,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		if (mGameController instanceof EngineController) {
 			((EngineController) mGameController).setMaxDepth(
-					Integer.valueOf(mSettings.getString("difficultyDepth2", "-1")));
+					Integer.valueOf(mSettings.getString("difficultyDepth2", "3")));
 		} else if (mGameController instanceof BluetoothGameController) {
 			if (((BluetoothGameController) mGameController).isListening()) {
 				onWaitingForOpponent();
@@ -537,6 +537,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		final MenuItem bluetoothSubmenu = menu.findItem(R.id.bluetooth_submenu);
 		bluetoothSubmenu.setVisible(hasBluetooth);
+		bluetoothSubmenu.setEnabled(mGameController == null || !mGameController.isAnalyzing());
 		if (hasBluetooth) {
 			final boolean isConnected = isUsingBluetooth && gameIsAlive && mGameController.isGameActive();
 			bluetoothSubmenu.setIcon(isConnected ?
@@ -580,6 +581,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	}
 
 	private boolean createNewGame() {
+		clearCurrentPgnGame();
 		if (mGameController instanceof BluetoothGameController) {
 			Intent serverIntent = new Intent(this, DeviceListActivity.class);
 			startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
@@ -1227,7 +1229,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					return builder.create();
 				}
 
-				int defaultItem = 0;
+				int defaultItem = -1;
 				String currentPGNFile = mSettings.getString("currentPGNFile2", "");
 				for (int i = 0; i < numFiles; i++) {
 					if (currentPGNFile.equals(fileNames[i])) {
@@ -1279,6 +1281,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			}
 		}
 		return null;
+	}
+
+	private void clearCurrentPgnGame() {
+		mSettings.edit().remove("currentPGNFile2").apply();
 	}
 
 	private static String[] findFilesInDirectory(String dirName) {

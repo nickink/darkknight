@@ -20,7 +20,7 @@
 			android:summary="@string/difficulty_depth_description"
 			android:entryValues="@array/difficulty_depth_values"
 			android:entries="@array/difficulty_depth_texts"
-			android:defaultValue="-1">
+			android:defaultValue="3">
 		</ListPreference>
 	</PreferenceCategory>
 	<PreferenceCategory

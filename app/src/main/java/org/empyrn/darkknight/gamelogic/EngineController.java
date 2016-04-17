@@ -6,6 +6,7 @@ import android.os.Environment;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 
 import org.empyrn.darkknight.BuildConfig;
@@ -659,41 +660,41 @@ public class EngineController extends AbstractGameController implements GameCont
 		return game == null ? 0 : game.numVariations();
 	}
 
-	public final void goToMove(int moveNr) {
-		if (game == null) {
-			return;
-		}
-
-		boolean needUpdate = false;
-		while (game.currPos().fullMoveCounter > moveNr) { // Go backward
-			int before = game.currPos().fullMoveCounter * 2
-					+ (game.currPos().whiteMove ? 0 : 1);
-			undoMoveNoUpdate();
-			int after = game.currPos().fullMoveCounter * 2
-					+ (game.currPos().whiteMove ? 0 : 1);
-			if (after >= before)
-				break;
-			needUpdate = true;
-		}
-
-		while (game.currPos().fullMoveCounter < moveNr) { // Go forward
-			int before = game.currPos().fullMoveCounter * 2
-					+ (game.currPos().whiteMove ? 0 : 1);
-			redoMoveNoUpdate();
-			int after = game.currPos().fullMoveCounter * 2
-					+ (game.currPos().whiteMove ? 0 : 1);
-			if (after <= before)
-				break;
-			needUpdate = true;
-		}
-
-		if (needUpdate) {
-			stopAnalysis();
-			stopComputerThinking();
-			updateComputeThreads(true);
-			onPositionChanged();
-		}
-	}
+//	public final void goToMove(int moveNr) {
+//		if (game == null) {
+//			return;
+//		}
+//
+//		boolean needUpdate = false;
+//		while (game.currPos().fullMoveCounter > moveNr) { // go backward
+//			int before = game.currPos().fullMoveCounter * 2
+//					+ (game.currPos().whiteMove ? 0 : 1);
+//			undoMoveNoUpdate();
+//			int after = game.currPos().fullMoveCounter * 2
+//					+ (game.currPos().whiteMove ? 0 : 1);
+//			if (after >= before)
+//				break;
+//			needUpdate = true;
+//		}
+//
+//		while (game.currPos().fullMoveCounter < moveNr) { // go forward
+//			int before = game.currPos().fullMoveCounter * 2
+//					+ (game.currPos().whiteMove ? 0 : 1);
+//			redoMoveNoUpdate();
+//			int after = game.currPos().fullMoveCounter * 2
+//					+ (game.currPos().whiteMove ? 0 : 1);
+//			if (after <= before)
+//				break;
+//			needUpdate = true;
+//		}
+//
+//		if (needUpdate) {
+//			stopAnalysis();
+//			stopComputerThinking();
+//			updateComputeThreads(true);
+//			onPositionChanged();
+//		}
+//	}
 
 	public final void tryPlayMove(Move m) {
 		if (!isPlayerTurn() || getGui() == null) {
@@ -715,7 +716,7 @@ public class EngineController extends AbstractGameController implements GameCont
 			} else {
 				updateComputeThreads(true);
 			}
-		} else {
+		} else if (getPromoteMove() == null) {
 			getGui().onInvalidMoveRejected(m);
 		}
 	}
@@ -738,10 +739,15 @@ public class EngineController extends AbstractGameController implements GameCont
 
 		String str = Integer.valueOf(game.currPos().fullMoveCounter).toString();
 		str += game.currPos().whiteMove ? ". White's move" : "... Black's move";
-		if (computerThread != null)
+
+		if (computerThread != null) {
 			str += " (thinking)";
-		if (analysisThread != null)
+		}
+
+		if (analysisThread != null) {
 			str += " (analyzing)";
+		}
+
 		if (game.getGameStatus() != Status.ALIVE) {
 			str = game.getGameStateString();
 		}
@@ -878,15 +884,27 @@ public class EngineController extends AbstractGameController implements GameCont
 			return;
 		}
 
+		int elapsed = 0;
+
 		analysisThread.stop();
 		while (analysisThread != null) {
+			if (elapsed > 2000) {
+				Log.e(getClass().getSimpleName(), "Analysis thread overheated");
+				System.exit(1);
+			}
+
 			try {
 				Thread.sleep(10);
+				elapsed += 10;
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
 
+		updateStatusText();
+	}
+
+	private void updateStatusText() {
 		GUIInterface guiInterface = getGui();
 		if (guiInterface != null) {
 			getGui().setStatusString(getStatusText());
@@ -906,7 +924,8 @@ public class EngineController extends AbstractGameController implements GameCont
 		protected final Position currPos;
 		protected final boolean haveDrawOffer;
 
-		protected EngineTaskThread(EnginePlayer player, Pair<Position, ArrayList<Move>> ph, Position currPos, boolean haveDrawOffer) {
+		protected EngineTaskThread(EnginePlayer player, Pair<Position, ArrayList<Move>> ph,
+		                           Position currPos, boolean haveDrawOffer) {
 			this.enginePlayer = player;
 			this.ph = ph;
 			this.currPos = currPos;
@@ -963,6 +982,7 @@ public class EngineController extends AbstractGameController implements GameCont
 
 			computerThread = this;
 			Log.i(getClass().getSimpleName(), "Computer move selection thread started");
+			updateStatusText();
 
 			if (getGui() != null) {
 				getGui().onOpponentBeganThinking();
@@ -988,16 +1008,22 @@ public class EngineController extends AbstractGameController implements GameCont
 		}
 	}
 
-	protected class AnalysisThread extends EngineTaskThread<Void> {
+	protected class AnalysisThread extends EngineTaskThread<String> {
 		protected AnalysisThread(EnginePlayer player, Pair<Position, ArrayList<Move>> ph,
 		                         Position currPos, boolean haveDrawOffer) {
 			super(player, ph, currPos, haveDrawOffer);
 		}
 
 		@Override
-		protected Void doInBackground(Void... params) {
+		protected String doInBackground(Void... params) {
+			if (enginePlayer.isStoppingSearch()) {
+				return null;
+			}
+
+			String bestMove = null;
+
 			try {
-				enginePlayer.analyze(ph.first, new EngineControllerSearchListener() {
+				bestMove = enginePlayer.analyze(ph.first, new EngineControllerSearchListener() {
 					@Override
 					protected void onThinkingInfoChanged(ThinkingInfo thinkingInfo) {
 						publishProgress(thinkingInfo);
@@ -1012,7 +1038,7 @@ public class EngineController extends AbstractGameController implements GameCont
 			// set the analysis thread to null here since otherwise waiting methods will never allow
 			// onPostExecute() to happen
 			analysisThread = null;
-			return null;
+			return bestMove;
 		}
 
 		@Override
@@ -1033,10 +1059,11 @@ public class EngineController extends AbstractGameController implements GameCont
 			analysisThread = this;
 			isAnalysisQuickPause = false;
 			Log.i(getClass().getSimpleName(), "Analysis thread started");
+			updateStatusText();
 		}
 
 		@Override
-		protected void onPostExecute(Void v) {
+		protected void onPostExecute(String s) {
 			Log.i(getClass().getSimpleName(), "Analysis thread stopped");
 
 			GUIInterface guiInterface = getGui();

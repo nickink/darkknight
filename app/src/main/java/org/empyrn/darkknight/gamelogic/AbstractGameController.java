@@ -234,6 +234,10 @@ public abstract class AbstractGameController implements GameController {
 
 	private Move promoteMove;
 
+	protected Move getPromoteMove() {
+		return promoteMove;
+	}
+
 	public final void setPromotionChoice(PromotionPiece promotionPiece) {
 		if (getGame() == null) {
 			throw new IllegalStateException("Game is not initialized");

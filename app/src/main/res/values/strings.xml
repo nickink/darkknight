@@ -18,7 +18,16 @@
 	    <item>6</item>
 		<item>8</item>
 	    <item>12</item>
-    	<item>-1</item>
+    	<item>16</item>
+	</string-array>
+	<string-array name="difficulty_depth_texts">
+		<item>2 ply (club player)</item>
+		<item>3 ply (strong club player)</item>
+		<item>4 ply (expert)</item>
+		<item>6 ply (master)</item>
+		<item>8 ply (average grandmaster)</item>
+		<item>12 ply (strong grandmaster)</item>
+		<item>16 ply (super grandmaster)</item>
 	</string-array>
 	<string-array name="moves_per_session_values">
 	    <item>0</item>
@@ -29,15 +38,6 @@
 	    <item>40</item>
 	    <item>50</item>
     	<item>60</item>
-	</string-array>
-	<string-array name="difficulty_depth_texts">
-		<item>2 ply</item>
-	    <item>3 ply</item>
-	    <item>4 ply</item>
-	    <item>6 ply</item>
-	    <item>8 ply</item>
-	    <item>12 ply</item>
-    	<item>infinite</item>
 	</string-array>
 	<string-array name="time_control_texts">
 	    <item>15 seconds</item>
@@ -156,7 +156,7 @@
 	<string name="about_info">\
 <b>About</b>\n\
 <i>Dark Knight</i> is an open-source GPLv3 Honeycomb-optimized fork of the Droidfish chess application, an Android interface \
-to the <i>stockfish</i> chess engine. \
+to the <i>stockfish</i> chess engine, developed by Nick Ink. \
 \n\
 \n\
 <i>Droidfish</i> is developed by Peter Österlund at http://web.comhem.se/petero2home/droidfish/ as a similar application \

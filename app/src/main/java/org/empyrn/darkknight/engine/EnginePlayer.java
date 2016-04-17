@@ -15,6 +15,7 @@ import org.empyrn.darkknight.gamelogic.UndoInfo;
 
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -26,7 +27,6 @@ public class EnginePlayer {
 	private static NativePipedProcess s_npp = null;
 
 	private final NativePipedProcess npp;
-	//private int timeLimit;
 	private Book book;
 	private boolean newGame = false;
 
@@ -89,7 +89,6 @@ public class EnginePlayer {
 		npp.writeLineToProcess("ucinewgame");
 		syncReady();
 
-		//timeLimit = 0;
 		book = new Book(false);
 	}
 
@@ -115,7 +114,7 @@ public class EnginePlayer {
 		npp.writeLineToProcess("isready");
 		while (true) {
 			// wait for the NPP to send the all clear to start the game
-			String s = npp.readLineFromProcess(1000);
+			String s = npp.readLineFromProcess(100);
 			if (s != null && s.equals("readyok")) {
 				break;
 			}
@@ -145,13 +144,23 @@ public class EnginePlayer {
 	 * Stop the engine process and clear the player from memory.
 	 */
 	public static synchronized void shutdownEngine() {
+		s_npp.shutDown();
+		while (s_npp.isProcessAlive()) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 		s_npp = null;
 
+		Log.i(EnginePlayer.class.getSimpleName(), "Shut down engine process");
+
 		if (playerInstance != null) {
-			playerInstance.npp.shutDown();
 			playerInstance = null;
 
-			System.err.println("Shut down player instance");
+			Log.i(EnginePlayer.class.getSimpleName(), "Removed player instance");
 		}
 	}
 
@@ -236,7 +245,7 @@ public class EnginePlayer {
 		npp.writeLineToProcess(goStr);
 
 		String bestMove = runEngineMonitorLoop(currPos, searchListener);
-		shouldStopSearch = false;
+		shouldStopSearch.set(false);
 
 		// claim draw if appropriate
 		if (statScore <= 0) {
@@ -259,7 +268,7 @@ public class EnginePlayer {
 	private String runEngineMonitorLoop(Position pos, @NonNull SearchListener searchListener) throws InterruptedException {
 		if (Looper.myLooper() == Looper.getMainLooper()) {
 			throw new IllegalStateException("Cannot monitor engine on main thread");
-		} else if (shouldStopSearch) {
+		} else if (shouldStopSearch.get()) {
 			throw new IllegalStateException("stopSearch cannot be true when starting to monitor the engine");
 		}
 
@@ -275,9 +284,9 @@ public class EnginePlayer {
 				throw new InterruptedException("UCI engine process has been shut down");
 			}
 
-			if (shouldStopSearch && !stopSent) {
-				Log.i(getClass().getSimpleName(), this + " stopping search");
-				// if the engine should stopGame, stopGame it
+			if (shouldStopSearch.get() && !stopSent) {
+				Log.i(getClass().getSimpleName(), this + " stopping search for " + npp.toString());
+				// if the engine should stop, stop it
 				npp.writeLineToProcess("stop");
 				stopSent = true;
 			}
@@ -307,25 +316,29 @@ public class EnginePlayer {
 	}
 
 
-	private boolean shouldStopSearch = false;
+	private final AtomicBoolean shouldStopSearch = new AtomicBoolean(false);
 
-	public final void analyze(Position prevPos, @NonNull SearchListener searchListener,
+	public final boolean isStoppingSearch() {
+		return shouldStopSearch.get();
+	}
+
+	public final String analyze(Position prevPos, @NonNull SearchListener searchListener,
 	                          ArrayList<Move> mList, Position currPos, boolean drawOffer) throws InterruptedException {
 		if (!npp.isProcessAlive()) {
 			throw new IllegalStateException("Engine process is not initialized");
+		} else if (shouldStopSearch.get()) {
+			throw new IllegalStateException("shouldStopSearch cannot be true when starting analysis");
 		}
 
-
-		shouldStopSearch = false;
 
 		Pair<String, ArrayList<Move>> bi = getBookHints(currPos);
 		searchListener.notifyBookInfo(bi.first, bi.second);
 
-		// If no legal moves, there is nothing to analyze
+		// if no legal moves, there is nothing to analyze
 		Set<Move> moves = MoveGenerator.INSTANCE.generateLegalMoves(currPos);
 		if (moves.size() == 0) {
 			// no legal moves
-			return;
+			return null;
 		}
 
 		StringBuilder posStr = new StringBuilder();
@@ -344,8 +357,7 @@ public class EnginePlayer {
 		npp.writeLineToProcess(posStr.toString());
 		npp.writeLineToProcess("go infinite");
 
-		runEngineMonitorLoop(currPos, searchListener);
-		shouldStopSearch = false;
+		return runEngineMonitorLoop(currPos, searchListener);
 	}
 
 	/**
@@ -511,10 +523,31 @@ public class EnginePlayer {
 	}
 
 	public final void stopSearch() {
-		Log.i(getClass().getSimpleName(), this + " received shouldStopSearch");
-		shouldStopSearch = true;
+		if (shouldStopSearch.get()) {
+			// search is already being stopped
+			return;
+		}
 
-		//TODO: remove this once "stopGame" actually stops the engine from thinking
-		EnginePlayer.shutdownEngine();
+//		if (Looper.getMainLooper().equals(Looper.myLooper())) {
+//			throw new IllegalStateException("stopSearch() should not be called on the main thread");
+//		}
+
+		Log.i(getClass().getSimpleName(), this + " received shouldStopSearch for " + npp.toString());
+		synchronized (shouldStopSearch) {
+			shouldStopSearch.set(true);
+
+			//TODO: remove this once "stop" actually stops the engine from thinking
+			EnginePlayer.shutdownEngine();
+
+			while (npp.isProcessAlive()) {
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+
+			shouldStopSearch.set(false);
+		}
 	}
 }
