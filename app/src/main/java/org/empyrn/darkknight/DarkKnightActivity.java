@@ -234,6 +234,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			return;
 		}
 
+		if (!isChangingConfigurations() &&  mGameController.getGameMode() == GameMode.ANALYSIS) {
+			// don't attempt to retain state for analysis when not changing configurations
+			return;
+		}
+
 		outState.putInt("ControllerMode", mGameController instanceof EngineController ? MODE_ENGINE
 				: MODE_BLUETOOTH);
 
