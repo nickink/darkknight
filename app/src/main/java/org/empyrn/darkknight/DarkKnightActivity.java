@@ -494,6 +494,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.options_menu, menu);
+
+		// remove go to move item for now
+		menu.removeItem(R.id.item_goto_move);
+
 		return true;
 	}
 
@@ -1201,6 +1205,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 //					}
 //				});
 //				return dialog;
+				break;
 			}
 			case SELECT_BOOK_DIALOG: {
 				String[] fileNames = findFilesInDirectory(BOOK_DIR);

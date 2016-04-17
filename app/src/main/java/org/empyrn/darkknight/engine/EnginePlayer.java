@@ -322,21 +322,21 @@ public class EnginePlayer {
 
 		maybeNewGame();
 		npp.writeLineToProcess(posStr.toString());
-		if (wTime < 1) wTime = 1;
-		if (bTime < 1) bTime = 1;
-		String goStr = String.format("go wtime %d btime %d", wTime, bTime);
+//		if (wTime < 1) wTime = 1;
+//		if (bTime < 1) bTime = 1;
+		String goStr = "go";
 
 		if (maxDepth > 1) {
 			goStr += String.format(" depth %d", maxDepth);
 		}
 
-		if (inc > 0) {
-			goStr += String.format(" winc %d binc %d", inc, inc);
-		}
-
-		if (movesToGo > 0) {
-			goStr += String.format(" movestogo %d", movesToGo);
-		}
+//		if (inc > 0) {
+//			goStr += String.format(" winc %d binc %d", inc, inc);
+//		}
+//
+//		if (movesToGo > 0) {
+//			goStr += String.format(" movestogo %d", movesToGo);
+//		}
 
 		npp.writeLineToProcess(goStr);
 

@@ -306,7 +306,7 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="dk_this_platform_not_supported">This device platform is not supported by Dark Knight.</string>
 	<string name="game_could_not_be_restored">Game could not be restored.</string>
 	<string name="confirm_resign">Are you sure you want to resign?</string>
-	<string name="stop_analysis">Stop Analysis</string>
+	<string name="stop_analysis">Stop analysis</string>
 	<string name="analyze">Analyze</string>
 	<string name="dark_knight_does_not_have_external_storage_permission">Dark Knight does not have permission to access external storage.</string>
 	<string name="your_opponent_attempted_to_make_a_move_during_your_turn">Your opponent attempted to make a move during your turn. It was ignored.</string>
