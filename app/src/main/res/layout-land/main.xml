@@ -42,7 +42,9 @@
             android:layout_marginStart="@dimen/move_list_horizontal_margin"
             android:layout_marginEnd="@dimen/move_list_horizontal_margin"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="4dp"/>
+            android:layout_marginBottom="4dp"
+            android:maxLines="2"
+            android:minHeight="48sp" />
 
         <ScrollView
             android:id="@+id/move_list_scroll_view"
@@ -74,7 +76,8 @@
             android:layout_alignParentBottom="true"
             android:layout_marginEnd="@dimen/fab_total_spacing"
             android:paddingTop="4dp"
-            android:paddingBottom="4dp"/>
+            android:paddingBottom="4dp"
+            android:textSize="@dimen/thinking_info_text_size"/>
 
         <LinearLayout
             android:layout_width="@dimen/fab_total_spacing"

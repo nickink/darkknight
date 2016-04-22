@@ -4,4 +4,5 @@
     <dimen name="fab_total_spacing">108dp</dimen>
     <dimen name="move_list_horizontal_margin">16dp</dimen>
     <dimen name="move_list_text_size">22sp</dimen>
+    <dimen name="thinking_info_text_size">18sp</dimen>
 </resources>
