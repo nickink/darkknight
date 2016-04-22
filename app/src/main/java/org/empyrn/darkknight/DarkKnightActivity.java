@@ -836,7 +836,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 					final BluetoothGameController bGameCtrl
 							= new BluetoothGameController(getApplicationContext());
-					bGameCtrl.setGameMode(GameMode.PLAYER_WHITE);       // client that initiates the request picks the side
+					bGameCtrl.setGameMode(new Random().nextBoolean() ? GameMode.PLAYER_WHITE
+							: GameMode.PLAYER_BLACK);
 					bGameCtrl.setGui(this);
 					bGameCtrl.setGameTextListener(new PGNScreenText(PreferenceManager.getDefaultSharedPreferences(this),
 							new PGNOptions()));

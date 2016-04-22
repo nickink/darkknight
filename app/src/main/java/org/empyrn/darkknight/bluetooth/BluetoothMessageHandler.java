@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -36,7 +37,7 @@ class BluetoothMessageHandler {
 	interface Callback {
 		void onBluetoothListening();
 		void onBluetoothStopped(@Nullable BluetoothDevice device);
-		void onBluetoothConnectingToDevice(BluetoothDevice device);
+		void onBluetoothConnectingToDevice(@NonNull BluetoothDevice device);
 		void onBluetoothDeviceConnected(BluetoothDevice device);
 		void onBluetoothConnectionFailed(BluetoothDevice device);
 		void onBluetoothConnectionLost(@Nullable BluetoothDevice device);
@@ -112,12 +113,10 @@ class BluetoothMessageHandler {
 					mCallback.onBluetoothStopped(mCurrentDevice);
 					break;
 				case MESSAGE_CONNECTING_TO_DEVICE:
-					if (BuildConfig.DEBUG) {
-						Log.i(getClass().getSimpleName(), "BLUETOOTH CONNECTING TO " +
-								mCurrentDevice.getAddress() + " (" + mCurrentDevice.getAddress() + ")");
+					if (mCurrentDevice != null) {
+						mCallback.onBluetoothConnectingToDevice(mCurrentDevice);
 					}
 
-					mCallback.onBluetoothConnectingToDevice(mCurrentDevice);
 					break;
 				case MESSAGE_CONNECTED_TO_DEVICE:
 					mCallback.onBluetoothDeviceConnected(mCurrentDevice);

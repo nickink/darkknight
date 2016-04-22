@@ -1,5 +1,6 @@
 package org.empyrn.darkknight.bluetooth;
 
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -7,23 +8,27 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.empyrn.darkknight.R;
+import org.empyrn.darkknight.view.DividerItemDecoration;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -47,43 +52,44 @@ public class DeviceListActivity extends AppCompatActivity {
 
 	private DeviceListAdapter mAdapter;
 
+	private static final int REQUEST_COARSE_LOCATION_PERMISSIONS = 28291;
+
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.device_list);
 
-		// Set result CANCELED incase the user backs out
-		setResult(Activity.RESULT_CANCELED);
+		setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
-		// Initialize the button to perform device discovery
-		Button scanButton = (Button) findViewById(R.id.button_scan);
-		scanButton.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				doDiscovery();
-				v.setVisibility(View.GONE);
-			}
-		});
+		// set result CANCELED in case the user backs out
+		setResult(Activity.RESULT_CANCELED);
 
 		mAdapter = new DeviceListAdapter();
 
 		RecyclerView mDeviceListView = (RecyclerView) findViewById(R.id.device_list_view);
 		mDeviceListView.setLayoutManager(new LinearLayoutManager(this));
+		mDeviceListView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
 		mDeviceListView.setAdapter(mAdapter);
 		mDeviceListView.setFocusable(true);
 
-		// Register for broadcasts when a device is discovered
-		IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-		this.registerReceiver(mReceiver, filter);
+		this.registerReceiver(mReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED));
 
-		// Register for broadcasts when discovery has finished
-		filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-		this.registerReceiver(mReceiver, filter);
+		// register for broadcasts when a device is discovered
+		this.registerReceiver(mReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
 
-		// Get the local Bluetooth adapter
+		// register for broadcasts when discovery has finished
+		this.registerReceiver(mReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
+
+		// get the local Bluetooth adapter
 		mBtAdapter = BluetoothAdapter.getDefaultAdapter();
 
-		// Get a set of currently paired devices
+		if (mBtAdapter.isDiscovering()) {
+			mBtAdapter.cancelDiscovery();
+		}
+
+		// get a set of currently paired devices
 		Set<BluetoothDevice> pairedDevices = mBtAdapter.getBondedDevices();
 
 		for (BluetoothDevice device : pairedDevices) {
@@ -135,7 +141,10 @@ public class DeviceListActivity extends AppCompatActivity {
 		}
 
 		public void addNewDevice(Pair<String, String> newDevice) {
-			mNewDevices.add(newDevice);
+			if (!mNewDevices.contains(newDevice)) {
+				mNewDevices.add(newDevice);
+			}
+
 			notifyDataSetChanged();
 		}
 
@@ -163,28 +172,83 @@ public class DeviceListActivity extends AppCompatActivity {
 	protected void onDestroy() {
 		super.onDestroy();
 
-		// Make sure we're not doing discovery anymore
+		// make sure we're not doing discovery anymore
 		if (mBtAdapter != null) {
 			mBtAdapter.cancelDiscovery();
 		}
 
-		// Unregister broadcast listeners
+		// unregister broadcast listeners
 		this.unregisterReceiver(mReceiver);
 	}
 
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+		switch (requestCode) {
+			case REQUEST_COARSE_LOCATION_PERMISSIONS: {
+				if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+					doDiscovery();
+				} else {
+					Toast.makeText(this, R.string.no_permission_to_scan_bluetooth_devices, Toast.LENGTH_LONG).show();
+				}
+			}
+		}
+	}
+
 	/**
-	 * Start device discover with the BluetoothAdapter
+	 * Start device discovery with the BluetoothAdapter
 	 */
 	private void doDiscovery() {
-		if (D) Log.d(TAG, "doDiscovery()");
+		if (D) {
+			Log.d(TAG, "doDiscovery()");
+		}
 
-		// If we're already discovering, stopListening it
+		int hasPermission = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+		if (hasPermission != PackageManager.PERMISSION_GRANTED) {
+			// request the permission to perform the Bluetooth scan
+			ActivityCompat.requestPermissions(this,
+					new String[]{
+							android.Manifest.permission.ACCESS_COARSE_LOCATION},
+					REQUEST_COARSE_LOCATION_PERMISSIONS);
+			return;
+		}
+
+		// if we're already discovering, cancel
 		if (mBtAdapter.isDiscovering()) {
 			mBtAdapter.cancelDiscovery();
 		}
 
-		// Request discover from BluetoothAdapter
+		getSupportActionBar().setSubtitle(getString(R.string.bluetooth_scanning));
+
+		// request discover from BluetoothAdapter
 		mBtAdapter.startDiscovery();
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.bluetooth_scan_menu, menu);
+
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		menu.findItem(R.id.item_bluetooth_scan).setVisible(!mBtAdapter.isDiscovering());
+
+		return super.onPrepareOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if (item.getItemId() == R.id.item_bluetooth_scan) {
+			doDiscovery();
+			ActivityCompat.invalidateOptionsMenu(this);
+			return true;
+		} else if (item.getItemId() == android.R.id.home) {
+			finish();
+			return true;
+		}
+
+		return super.onOptionsItemSelected(item);
 	}
 
 	/**
@@ -213,8 +277,9 @@ public class DeviceListActivity extends AppCompatActivity {
 
 			// when discovery finds a device
 			if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-				// Get the BluetoothDevice object from the Intent
+				// get the BluetoothDevice object from the intent
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
 				// if it's already paired, skip it, because it's been listed already
 				if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
 					String deviceName = (device.getName() == null || device.getName().trim().isEmpty())
@@ -227,6 +292,11 @@ public class DeviceListActivity extends AppCompatActivity {
 							getResources().getString(R.string.bluetooth_no_devices_found),
 							Toast.LENGTH_LONG).show();
 				}
+
+				getSupportActionBar().setSubtitle(null);
+				ActivityCompat.invalidateOptionsMenu(DeviceListActivity.this);
+			} else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
+				ActivityCompat.invalidateOptionsMenu(DeviceListActivity.this);
 			}
 		}
 	};

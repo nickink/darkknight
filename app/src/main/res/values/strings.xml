@@ -282,7 +282,7 @@ If you are running on battery power, it is recommended that you disable analysis
     <string name="scanning">scanning for devices...</string>
     <string name="select_device">select a device to connect</string>
     <string name="none_paired">No devices have been paired</string>
-    <string name="bluetooth_no_devices_found">No devices found</string>
+    <string name="bluetooth_no_devices_found">No Bluetooth devices found.</string>
     <string name="title_paired_devices">Paired Devices</string>
     <string name="title_other_devices">Other Available Devices</string>
     <string name="button_scan">Scan for devices</string>
@@ -357,4 +357,7 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="switched_to_playing_against_the_computer">Switched to playing against the computer.</string>
 	<string name="switched_to_bluetooth_play">Switched to Bluetooth play.</string>
 	<string name="analysis_was_interrupted">Analysis was interrupted and had to be stopped.</string>
+	<string name="bluetooth_scan">Scan</string>
+	<string name="bluetooth_scanning">Scanning for devices…</string>
+	<string name="no_permission_to_scan_bluetooth_devices">Dark Knight does not have permission to scan for Bluetooth devices.</string>
 </resources>
