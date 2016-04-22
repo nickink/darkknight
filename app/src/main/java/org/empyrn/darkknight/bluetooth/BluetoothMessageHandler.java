@@ -35,7 +35,7 @@ class BluetoothMessageHandler {
 
 	interface Callback {
 		void onBluetoothListening();
-		void onBluetoothStopped();
+		void onBluetoothStopped(@Nullable BluetoothDevice device);
 		void onBluetoothConnectingToDevice(BluetoothDevice device);
 		void onBluetoothDeviceConnected(BluetoothDevice device);
 		void onBluetoothConnectionFailed(BluetoothDevice device);
@@ -109,7 +109,7 @@ class BluetoothMessageHandler {
 					mCallback.onBluetoothListening();
 					break;
 				case MESSAGE_STOPPED:
-					mCallback.onBluetoothStopped();
+					mCallback.onBluetoothStopped(mCurrentDevice);
 					break;
 				case MESSAGE_CONNECTING_TO_DEVICE:
 					if (BuildConfig.DEBUG) {

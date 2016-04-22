@@ -116,9 +116,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	public void stopGame() {
 		stopBluetoothService();
 
-		if (getGui() != null) {
-			getGui().onGameStopped();
-		}
+		getGui().onGameStopped();
 	}
 
 	@Override
@@ -172,9 +170,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 		game = new Game(getGameTextListener(), Integer.MAX_VALUE,
 				Integer.MAX_VALUE, Integer.MAX_VALUE);
 
-		if (getGui() != null) {
-			getGui().onNewGameStarted();
-		}
+		getGui().onNewGameStarted();
 	}
 
 	@Override
@@ -198,9 +194,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public void resumeGame() {
-		if (getGui() != null) {
-			getGui().onGameResumed();
-		}
+		getGui().onGameResumed();
 	}
 
 	public void sendMove(Move m) {
@@ -209,7 +203,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public void tryPlayMove(Move m) {
-		if (!isPlayerTurn() || getGui() == null) {
+		if (!isPlayerTurn()) {
 			throw new IllegalStateException();
 		}
 
@@ -285,24 +279,16 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public void onBluetoothListening() {
-		if (getGui() == null) {
-			return;
-		}
-
 		getGui().onWaitingForOpponent();
 	}
 
 	@Override
-	public void onBluetoothStopped() {
-
+	public void onBluetoothStopped(BluetoothDevice device) {
+		// Bluetooth is stopped
 	}
 
 	@Override
 	public void onBluetoothConnectingToDevice(BluetoothDevice device) {
-		if (getGui() == null) {
-			return;
-		}
-
 		getGui().showMessage(mContext.getString(R.string.connecting_to_bluetooth_device, device.getName()),
 				Snackbar.LENGTH_INDEFINITE);
 	}
@@ -323,9 +309,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 				setGameMode(GameMode.PLAYER_WHITE);
 			}
 
-			if (getGui() != null) {
-				getGui().dismissMessage();
-			}
+			getGui().dismissMessage();
 
 			// begin a new game
 			startGame();
@@ -345,11 +329,9 @@ public class BluetoothGameController extends AbstractGameController implements B
 			return;
 		}
 
-		if (getGui() != null) {
-			if (readMessage.equals("draw decline")) {
-				getGui().showMessage(mContext.getString(R.string.draw_offer_declined), Snackbar.LENGTH_LONG);
-				return;
-			}
+		if (readMessage.equals("draw decline")) {
+			getGui().showMessage(mContext.getString(R.string.draw_offer_declined), Snackbar.LENGTH_LONG);
+			return;
 		}
 
 		if (readMessage.startsWith("draw offer ")) {
@@ -357,9 +339,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 			Move m = TextIO.UCIstringToMove(readMessage.substring("draw offer ".length()));
 
-			if (getGui() != null) {
-				getGui().onOpponentOfferDraw(m);
-			}
+			getGui().onOpponentOfferDraw(m);
 
 			return;
 		}
@@ -384,9 +364,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	@Override
 	public void onBluetoothDeviceConnected(BluetoothDevice device) {
 		if (getGameMode() != null) {
-			if (getGui() != null) {
-				getGui().dismissMessage();
-			}
+			getGui().dismissMessage();
 
 			startGame();
 
@@ -397,7 +375,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 			}
 
 			resumeGame();
-		} else if (getGui() != null) {
+		} else {
 			getGui().onConnectedToOpponent(mContext.getString(R.string.connected_to_bluetooth_device, device.getName()));
 		}
 	}
@@ -406,25 +384,15 @@ public class BluetoothGameController extends AbstractGameController implements B
 	@Override
 	public void onBluetoothConnectionFailed(BluetoothDevice device) {
 		setGameMode(null);
-		getGui().showMessage(mContext.getString(R.string.connection_to_bluetooth_device_failed),
-				Snackbar.LENGTH_LONG);
+		getGui().showToast(mContext.getString(R.string.connection_to_bluetooth_device_failed), Toast.LENGTH_LONG);
 	}
 
 	@Override
 	public void onBluetoothConnectionLost(@Nullable BluetoothDevice device) {
 		if (isGameActive()) {
-			if (getGui() != null) {
-				String error;
-				if (device == null) {
-					error = mContext.getString(R.string.bluetooth_connection_to_device_lost_generic);
-				} else {
-					error = mContext.getString(R.string.bluetooth_connection_to_device_lost, device.getName());
-				}
-
-				getGui().showMessage(error, Snackbar.LENGTH_INDEFINITE);
-			}
-
 			pauseGame();
 		}
+
+		getGui().onOpponentDisconnected(device != null ? device.getName() : null);
 	}
 }

@@ -274,9 +274,7 @@ public class EngineController extends AbstractGameController implements GameCont
 			game = createGameFromFENorPGN(fenPgn);
 		}
 
-		if (getGui() != null) {
-			getGui().onNewGameStarted();
-		}
+		getGui().onNewGameStarted();
 	}
 
 	@Override
@@ -298,10 +296,8 @@ public class EngineController extends AbstractGameController implements GameCont
 		onPositionChanged();
 		updateGamePaused();
 
-		if (getGui() != null) {
-			getGui().setStatusString(getStatusText());
-			getGui().onGameResumed();
-		}
+		getGui().setStatusString(getStatusText());
+		getGui().onGameResumed();
 
 		guiPaused = false;
 	}
@@ -323,16 +319,14 @@ public class EngineController extends AbstractGameController implements GameCont
 			game = null;
 		}
 
-		if (getGui() != null) {
-			getGui().onGameStopped();
-		}
+		getGui().onGameStopped();
 	}
 
 	private void setGuiPaused(boolean paused) {
 		guiPaused = paused;
 		updateGamePaused();
 
-		if (paused && getGui() != null) {
+		if (paused) {
 			getGui().onGamePaused();
 		}
 	}
@@ -465,11 +459,7 @@ public class EngineController extends AbstractGameController implements GameCont
 		Log.i(getClass().getSimpleName(), "Restored game with type " + this.gameMode);
 
 		GUIInterface guiInterface = getGui();
-		if (guiInterface != null) {
-			guiInterface.onGameRestored();
-		} else {
-			Log.w(getClass().getSimpleName(), "Restored game without a GUI -- this is not recommended");
-		}
+		guiInterface.onGameRestored();
 	}
 
 	private Game createGameFromFENorPGN(String fenPgn) throws ChessParseError {
@@ -549,10 +539,8 @@ public class EngineController extends AbstractGameController implements GameCont
 		updateMoveList();
 
 		GUIInterface guiInterface = getGui();
-		if (guiInterface != null) {
-			guiInterface.onThinkingInfoChanged(null);
-			guiInterface.onMoveUnmade(lastMove);
-		}
+		guiInterface.onThinkingInfoChanged(null);
+		guiInterface.onMoveUnmade(lastMove);
 
 		stopAnalysis();
 		if (getGameMode() == GameMode.ANALYSIS) {
@@ -585,10 +573,8 @@ public class EngineController extends AbstractGameController implements GameCont
 		updateMoveList();
 
 		GUIInterface guiInterface = getGui();
-		if (guiInterface != null) {
-			guiInterface.onThinkingInfoChanged(null);
-			guiInterface.onMoveRemade(game.getLastMove());
-		}
+		guiInterface.onThinkingInfoChanged(null);
+		guiInterface.onMoveRemade(game.getLastMove());
 
 		stopAnalysis();
 		if (getGameMode() == GameMode.ANALYSIS) {
@@ -651,9 +637,7 @@ public class EngineController extends AbstractGameController implements GameCont
 			@Override
 			protected void onPreExecute() {
 				GUIInterface guiInterface = getGui();
-				if (guiInterface != null) {
-					guiInterface.onThinkingInfoChanged(null);
-				}
+				guiInterface.onThinkingInfoChanged(null);
 			}
 
 			@Override
@@ -667,44 +651,8 @@ public class EngineController extends AbstractGameController implements GameCont
 		return game == null ? 0 : game.numVariations();
 	}
 
-//	public final void goToMove(int moveNr) {
-//		if (game == null) {
-//			return;
-//		}
-//
-//		boolean needUpdate = false;
-//		while (game.currPos().fullMoveCounter > moveNr) { // go backward
-//			int before = game.currPos().fullMoveCounter * 2
-//					+ (game.currPos().whiteMove ? 0 : 1);
-//			undoMoveNoUpdate();
-//			int after = game.currPos().fullMoveCounter * 2
-//					+ (game.currPos().whiteMove ? 0 : 1);
-//			if (after >= before)
-//				break;
-//			needUpdate = true;
-//		}
-//
-//		while (game.currPos().fullMoveCounter < moveNr) { // go forward
-//			int before = game.currPos().fullMoveCounter * 2
-//					+ (game.currPos().whiteMove ? 0 : 1);
-//			redoMoveNoUpdate();
-//			int after = game.currPos().fullMoveCounter * 2
-//					+ (game.currPos().whiteMove ? 0 : 1);
-//			if (after <= before)
-//				break;
-//			needUpdate = true;
-//		}
-//
-//		if (needUpdate) {
-//			stopAnalysis();
-//			stopComputerThinking();
-//			updateComputeThreads(true);
-//			onPositionChanged();
-//		}
-//	}
-
 	public final void tryPlayMove(Move m) {
-		if (!isPlayerTurn() || getGui() == null) {
+		if (!isPlayerTurn()) {
 			throw new IllegalStateException();
 		}
 
@@ -784,9 +732,7 @@ public class EngineController extends AbstractGameController implements GameCont
 			nextUpdate += 1;
 		}
 
-		if (getGui() != null) {
-			getGui().setRemainingTime(wTime, bTime, nextUpdate);
-		}
+		getGui().setRemainingTime(wTime, bTime, nextUpdate);
 	}
 
 	private synchronized void startComputerThinking() {
@@ -899,9 +845,7 @@ public class EngineController extends AbstractGameController implements GameCont
 				Log.e(getClass().getSimpleName(), "Analysis thread overheated");
 				analysisThread.cancel(true);
 
-				if (getGui() != null) {
-					getGui().onAnalysisInterrupted();
-				}
+				getGui().onAnalysisInterrupted();
 			}
 
 			if (elapsed > 5000) {
@@ -1000,9 +944,7 @@ public class EngineController extends AbstractGameController implements GameCont
 			Log.i(getClass().getSimpleName(), "Computer move selection thread started");
 			updateStatusText();
 
-			if (getGui() != null) {
-				getGui().onOpponentBeganThinking();
-			}
+			getGui().onOpponentBeganThinking();
 		}
 
 		@Override
@@ -1013,14 +955,10 @@ public class EngineController extends AbstractGameController implements GameCont
 			if (s != null && !s.equals("")) {
 				onEngineMoveMade(s);
 			} else if (s != null && s.equals("")) {
-				if (getGui() != null) {
-					getGui().onAnalysisInterrupted();
-				}
+				getGui().onAnalysisInterrupted();
 			}
 
-			if (getGui() != null) {
-				getGui().onOpponentStoppedThinking();
-			}
+			getGui().onOpponentStoppedThinking();
 		}
 
 		protected void stop() {

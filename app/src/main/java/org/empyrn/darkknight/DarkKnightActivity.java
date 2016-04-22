@@ -777,6 +777,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		destroyGame();
 
+		final boolean isSwitching = mGameController instanceof EngineController;
+
 		final BluetoothGameController bGameCtrl
 				= new BluetoothGameController(getApplicationContext());
 		bGameCtrl.setGui(this);
@@ -787,7 +789,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		setBluetoothDiscoverable();
 		invalidateUi();
 
-		Toast.makeText(this, R.string.switched_to_bluetooth_play, Toast.LENGTH_LONG).show();
+		if (isSwitching) {
+			Toast.makeText(this, R.string.switched_to_bluetooth_play, Toast.LENGTH_LONG).show();
+		}
 	}
 
 	private void switchFromBluetoothToEngine() {
@@ -852,6 +856,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					Snackbar.make(mCoordinatorView, R.string.bt_not_enabled_leaving,
 							Snackbar.LENGTH_LONG).show();
 				}
+
 				break;
 		}
 
@@ -967,6 +972,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	public void showMessage(CharSequence message, int duration) {
 		mCurrentSnackbar = Snackbar.make(mCoordinatorView, message, duration);
 		mCurrentSnackbar.show();
+	}
+
+	@Override
+	public void showToast(CharSequence message, int duration) {
+		Toast.makeText(this, message, duration).show();
 	}
 
 	@Override
@@ -1391,6 +1401,19 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	public void onOpponentStoppedThinking() {
 		enableChessBoard();
 		ActivityCompat.invalidateOptionsMenu(this);
+	}
+
+	@Override
+	public void onOpponentDisconnected(@Nullable String opponentName) {
+		String error;
+		if (opponentName == null) {
+			error = getString(R.string.bluetooth_connection_to_device_lost_generic);
+		} else {
+			error = getString(R.string.bluetooth_connection_to_device_lost, opponentName);
+		}
+
+		Snackbar.make(mCoordinatorView, error, Snackbar.LENGTH_INDEFINITE).show();
+		mGameController.stopGame();
 	}
 
 	@Override

@@ -34,6 +34,7 @@ public interface GUIInterface {
 
 	void onOpponentBeganThinking();
 	void onOpponentStoppedThinking();
+	void onOpponentDisconnected(String opponentName);
 
 	/**
 	 * Called when a move was made. This is called even if the GUI initiated the move.
@@ -80,6 +81,9 @@ public interface GUIInterface {
 
 	@Deprecated
 	void showMessage(CharSequence message, int duration);
+
+	@Deprecated
+	void showToast(CharSequence message, int duration);
 
 	@Deprecated
 	void dismissMessage();

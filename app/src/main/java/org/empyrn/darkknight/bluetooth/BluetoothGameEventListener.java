@@ -373,12 +373,12 @@ public class BluetoothGameEventListener {
 			Log.i(TAG, "BEGIN mConnectThread");
 			setName("ConnectThread");
 
-			// Always cancel discovery because it will slow down a connection
+			// always cancel discovery because it will slow down a connection
 			mAdapter.cancelDiscovery();
 
-			// Make a connection to the BluetoothSocket
+			// make a connection to the BluetoothSocket
 			try {
-				// This is a blocking call and will only return on a
+				// this is a blocking call and will only return on a
 				// successful connection or an exception
 				mmSocket.connect();
 			} catch (IOException e) {
@@ -398,12 +398,12 @@ public class BluetoothGameEventListener {
 				return;
 			}
 
-			// Reset the ConnectThread because we're done
+			// reset the ConnectThread because we're done
 			synchronized (BluetoothGameEventListener.this) {
 				mConnectThread = null;
 			}
 
-			// Start the connected thread
+			// start the connected thread
 			connected(mmSocket, mmDevice);
 		}
 

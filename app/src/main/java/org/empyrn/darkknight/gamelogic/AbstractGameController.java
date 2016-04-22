@@ -1,12 +1,14 @@
 package org.empyrn.darkknight.gamelogic;
 
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.empyrn.darkknight.GUIInterface;
 import org.empyrn.darkknight.GameMode;
 import org.empyrn.darkknight.PGNOptions;
+import org.empyrn.darkknight.engine.ThinkingInfo;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -35,13 +37,142 @@ public abstract class AbstractGameController implements GameController {
 		mPgnTokenReceiver = pgnTokenReceiver;
 	}
 
-	public @Nullable final GUIInterface getGui() {
-		if (mGuiInterface == null) {
-			return null;
+	@NonNull
+	public final GUIInterface getGui() {
+		if (mGuiInterface == null || mGuiInterface.get() == null) {
+			return DUMMY_CALLBACK;
 		} else {
 			return mGuiInterface.get();
 		}
 	}
+
+	// dummy callback interface to avoid null checks everywhere
+	private static final GUIInterface DUMMY_CALLBACK = new GUIInterface() {
+		@Override
+		public void onPositionChanged(Position newPosition, String variantInfo, List<Move> variantMoves) {
+
+		}
+
+		@Override
+		public void onNewGameStarted() {
+
+		}
+
+		@Override
+		public void onGameRestored() {
+
+		}
+
+		@Override
+		public void onGameResumed() {
+
+		}
+
+		@Override
+		public void onGamePaused() {
+
+		}
+
+		@Override
+		public void onGameStopped() {
+
+		}
+
+		@Override
+		public void onOpponentBeganThinking() {
+
+		}
+
+		@Override
+		public void onOpponentStoppedThinking() {
+
+		}
+
+		@Override
+		public void onOpponentDisconnected(String opponentName) {
+
+		}
+
+		@Override
+		public void onMoveMade(Move m) {
+
+		}
+
+		@Override
+		public void onMoveRemade(Move m) {
+
+		}
+
+		@Override
+		public void onMoveUnmade(Move m) {
+
+		}
+
+		@Override
+		public void onGameOver(Game.Status endState) {
+
+		}
+
+		@Override
+		public void setStatusString(String str) {
+
+		}
+
+		@Override
+		public void onThinkingInfoChanged(ThinkingInfo thinkingInfo) {
+
+		}
+
+		@Override
+		public void requestPromotePiece() {
+
+		}
+
+		@Override
+		public void onInvalidMoveRejected(Move m) {
+
+		}
+
+		@Override
+		public void setRemainingTime(long wTime, long bTime, long nextUpdate) {
+
+		}
+
+		@Override
+		public void onWaitingForOpponent() {
+
+		}
+
+		@Override
+		public void onConnectedToOpponent(CharSequence hint) {
+
+		}
+
+		@Override
+		public void onOpponentOfferDraw(Move m) {
+
+		}
+
+		@Override
+		public void showMessage(CharSequence message, int duration) {
+
+		}
+
+		@Override
+		public void showToast(CharSequence message, int duration) {
+
+		}
+
+		@Override
+		public void dismissMessage() {
+
+		}
+
+		@Override
+		public void onAnalysisInterrupted() {
+
+		}
+	};
 
 	public final void setGui(@Nullable GUIInterface guiInterface) {
 		if (guiInterface != null) {
@@ -71,8 +202,6 @@ public abstract class AbstractGameController implements GameController {
 	protected boolean doMove(Move move) {
 		if (getGame() == null) {
 			throw new IllegalStateException("Game is not initialized");
-		} else if (getGui() == null) {
-			throw new IllegalStateException("GUI is not initialized");
 		}
 
 		Log.d(getClass().getSimpleName(), "Controller: playing move " + move);
@@ -170,8 +299,6 @@ public abstract class AbstractGameController implements GameController {
 	protected void onMoveMade() {
 		if (getGame() == null) {
 			throw new IllegalStateException("Game is not initialized");
-		} else if (getGui() == null) {
-			throw new IllegalStateException("GUI is not initialized");
 		}
 
 		getGui().setStatusString(getStatusText());
@@ -201,8 +328,6 @@ public abstract class AbstractGameController implements GameController {
 
 		if (getGame() == null) {
 			throw new IllegalStateException("Game is not initialized");
-		} else if (getGui() == null) {
-			throw new IllegalStateException("GUI is not initialized");
 		}
 
 		getGui().setStatusString(getStatusText());
