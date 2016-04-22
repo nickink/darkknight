@@ -548,8 +548,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		offerDrawMenuItem.setEnabled(isPlayerTurn);
 		resignMenuItem.setEnabled(isPlayerTurn);
 
+		final boolean hasBluetooth = BluetoothAdapter.getDefaultAdapter() != null;
+
 		final boolean canAnalyze = hasGame && !mGameController.isAnalyzing();
-		startAnalysisMenuItem.setVisible(canAnalyze);
+		startAnalysisMenuItem.setVisible(canAnalyze && !isUsingBluetooth);
 		stopAnalysisMenuItem.setVisible(hasGame && !canAnalyze && !isUsingBluetooth);
 		flipBoardMenuItem.setVisible(hasGame && !canAnalyze && !isUsingBluetooth);
 		resignMenuItem.setVisible(canResign && canAnalyze);
@@ -559,8 +561,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		// be run while the computer is playing
 		stopGameMenuItem.setVisible(gameIsAlive && !(mGameController instanceof BluetoothGameController));
 		loadPgnMenuItem.setVisible(mGameController instanceof EngineController);
-
-		final boolean hasBluetooth = BluetoothAdapter.getDefaultAdapter() != null;
 
 		final MenuItem bluetoothSubmenu = menu.findItem(R.id.bluetooth_submenu);
 		bluetoothSubmenu.setVisible(hasBluetooth);
