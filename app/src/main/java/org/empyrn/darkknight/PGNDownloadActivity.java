@@ -3,9 +3,9 @@ package org.empyrn.darkknight;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.PersistableBundle;
 import android.os.ResultReceiver;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.Toast;
 
 /**
@@ -28,7 +28,7 @@ public class PGNDownloadActivity extends AppCompatActivity {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == DarkKnightActivity.RESULT_LOAD_PGN) {
+		if (requestCode == DarkKnightActivity.RESULT_LOAD_PGN && (data != null)) {
 			Intent i = new Intent(this, DarkKnightActivity.class);
 			i.putExtra("pgnData", data.getAction());
 			startActivity(i);
@@ -51,7 +51,9 @@ public class PGNDownloadActivity extends AppCompatActivity {
 				if (progress == 100) {
 					final String pgnFilename = resultData.getString("pgnFilename");
 
-					System.err.println("PGN filename: " + pgnFilename);
+					if (BuildConfig.DEBUG) {
+						Log.i(getClass().getSimpleName(), "PGN filename: " + pgnFilename);
+					}
 
 					if (pgnFilename != null) {
 						Intent i = new Intent(PGNDownloadActivity.this,
@@ -59,7 +61,7 @@ public class PGNDownloadActivity extends AppCompatActivity {
 						i.setAction(pgnFilename);
 						startActivityForResult(i, DarkKnightActivity.RESULT_LOAD_PGN);
 					} else {
-						Toast.makeText(PGNDownloadActivity.this, "Loading PGN failed", Toast.LENGTH_LONG).show();
+						Toast.makeText(PGNDownloadActivity.this, R.string.loading_pgn_failed, Toast.LENGTH_LONG).show();
 					}
 				}
 			}

@@ -81,7 +81,7 @@
             android:layout_width="@dimen/fab_total_spacing"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:layout_alignTop="@id/move_list_scroll_view"
+            android:layout_alignTop="@id/status"
             android:animateLayoutChanges="true"
             android:gravity="center_horizontal"
             android:orientation="horizontal">
