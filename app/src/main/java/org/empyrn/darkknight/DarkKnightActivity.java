@@ -614,14 +614,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
 			return true;
 		} else {
-			Random r = new Random();
-
-			// throw the dice to determine which color to play
 			if (mGameController.hasGame()) {
 				mGameController.stopGame();
 			}
 
-			mGameController.setGameMode(r.nextBoolean() ? GameMode.PLAYER_WHITE : GameMode.PLAYER_BLACK);
+			mGameController.setGameMode(getNextColor());
 			mGameController.startGame();
 		}
 
@@ -808,6 +805,20 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		Toast.makeText(this, R.string.switched_to_playing_against_the_computer, Toast.LENGTH_LONG).show();
 	}
 
+	private GameMode getNextColor() {
+		final int colorPreference = mSettings.getInt("colorPreference", 0);
+
+		switch (colorPreference) {
+			case 1:
+				return GameMode.PLAYER_WHITE;
+			case 2:
+				return GameMode.PLAYER_BLACK;
+			default:
+				return new Random().nextBoolean() ? GameMode.PLAYER_WHITE
+						: GameMode.PLAYER_BLACK;
+		}
+	}
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
@@ -836,8 +847,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 					final BluetoothGameController bGameCtrl
 							= new BluetoothGameController(getApplicationContext());
-					bGameCtrl.setGameMode(new Random().nextBoolean() ? GameMode.PLAYER_WHITE
-							: GameMode.PLAYER_BLACK);
+					bGameCtrl.setGameMode(getNextColor());
 					bGameCtrl.setGui(this);
 					bGameCtrl.setGameTextListener(new PGNScreenText(PreferenceManager.getDefaultSharedPreferences(this),
 							new PGNOptions()));

@@ -1,158 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
-	xmlns:android="http://schemas.android.com/apk/res/android">
-	<!--<PreferenceCategory-->
-		<!--android:title="Playing Options">-->
-		<!--<ListPreference-->
-			<!--android:key="gameMode"-->
-			<!--android:title="Game Mode"-->
-			<!--android:summary="Select opponent, analysis mode or computer match"-->
-			<!--android:entryValues="@array/game_mode_values"-->
-			<!--android:entries="@array/game_mode_texts"-->
-			<!--android:defaultValue="1">-->
-		<!--</ListPreference>-->
-	<!--</PreferenceCategory>-->
-	<PreferenceCategory
-		android:title="Difficulty">
-		<ListPreference
-			android:key="difficultyDepth2"
-			android:title="Depth"
-			android:summary="@string/difficulty_depth_description"
-			android:entryValues="@array/difficulty_depth_values"
-			android:entries="@array/difficulty_depth_texts"
-			android:defaultValue="3">
-		</ListPreference>
-	</PreferenceCategory>
-	<PreferenceCategory
-		android:title="Hints">
-		<CheckBoxPreference
-			android:key="showThinking"
-			android:title="Show Computer Thinking"
-			android:summary="Display computer algorithm information during search"
-			android:defaultValue="false">
-		</CheckBoxPreference>
-		<CheckBoxPreference
-			android:key="bookHints"
-			android:title="Show Book Hints"
-			android:summary="Display opening book move hints for human player"
-			android:defaultValue="false">
-		</CheckBoxPreference>
-		<ListPreference
-			android:key="thinkingArrows"
-			android:title="Use Arrows"
-			android:summary="Use arrows to display moves on chess board"
-			android:entryValues="@array/thinking_arrows_values"
-			android:entries="@array/thinking_arrows_texts"
-			android:defaultValue="2">
-		</ListPreference>
-	</PreferenceCategory>
-	<PreferenceCategory
-		android:title="User Interface">
-		<CheckBoxPreference
-			android:key="soundEnabled"
-			android:title="Enable Sounds"
-			android:summary="Play sound when computer makes a move"
-			android:defaultValue="false">
-		</CheckBoxPreference>
-		<!--<CheckBoxPreference-->
-			<!--android:key="oneTouchMoves"-->
-			<!--android:title="One Touch Moves"-->
-			<!--android:summary="Touching a square that corresponds to one unique move makes that move immediately"-->
-			<!--android:defaultValue="false" />-->
-	</PreferenceCategory>
-	<PreferenceCategory
-		android:title="Other">
-		<EditTextPreference
-			android:key="bookFile"
-			android:title="Book Filename"
-			android:summary="Polyglot book file in DarkKnight directory on SD Card"
-			android:defaultValue="">
-		</EditTextPreference>
-		<PreferenceScreen
-			android:key="pgnSettings"
-			android:title="PGN Settings"
-			android:summary="Settings for import and export of portable game notation (PGN) data">
-			<PreferenceCategory
-				android:title="PGN viewer">
-				<CheckBoxPreference
-					android:key="viewVariations"
-					android:title="Variations"
-					android:summary="Include non-mainline moves"
-					android:defaultValue="true">
-				</CheckBoxPreference>
-				<CheckBoxPreference
-					android:key="viewComments"
-					android:title="Comments"
-					android:summary="Include user written comments"
-					android:defaultValue="true">
-				</CheckBoxPreference>
-				<CheckBoxPreference
-					android:key="viewNAG"
-					android:title="Annotations"
-					android:summary="Include numeric annotation glyphs (NAGs), such as ! and ?"
-					android:defaultValue="true">
-				</CheckBoxPreference>
-				<CheckBoxPreference
-					android:key="viewHeaders"
-					android:title="Headers"
-					android:summary="Show PGN header lines"
-					android:defaultValue="false">
-				</CheckBoxPreference>
-			</PreferenceCategory>
-			<PreferenceCategory
-				android:title="PGN import">
-				<CheckBoxPreference
-					android:key="importVariations"
-					android:title="Variations"
-					android:summary="Include non-mainline moves"
-					android:defaultValue="true">
-				</CheckBoxPreference>
-				<CheckBoxPreference
-					android:key="importComments"
-					android:title="Comments"
-					android:summary="Include user written comments"
-					android:defaultValue="true">
-				</CheckBoxPreference>
-				<CheckBoxPreference
-					android:key="importNAG"
-					android:title="Annotations"
-					android:summary="Include numeric annotation glyphs (NAGs), such as ! and ?"
-					android:defaultValue="true">
-				</CheckBoxPreference>
-			</PreferenceCategory>
-			<PreferenceCategory
-				android:title="PGN export">
-				<CheckBoxPreference
-					android:key="exportVariations"
-					android:title="Variations"
-					android:summary="Include non-mainline moves"
-					android:defaultValue="true">
-				</CheckBoxPreference>
-				<CheckBoxPreference
-					android:key="exportComments"
-					android:title="Comments"
-					android:summary="Include user written comments"
-					android:defaultValue="true">
-				</CheckBoxPreference>
-				<CheckBoxPreference
-					android:key="exportNAG"
-					android:title="Annotations"
-					android:summary="Include numeric annotation glyphs (NAGs), such as ! and ?"
-					android:defaultValue="true">
-				</CheckBoxPreference>
-				<CheckBoxPreference
-					android:key="exportPlayerAction"
-					android:title="Player Actions"
-					android:summary="Include information about draw and resign actions"
-					android:defaultValue="false">
-				</CheckBoxPreference>
-				<CheckBoxPreference
-					android:key="exportTime"
-					android:title="Clock"
-					android:summary="Include time information for each move"
-					android:defaultValue="false">
-				</CheckBoxPreference>
-			</PreferenceCategory>
-		</PreferenceScreen>
-	</PreferenceCategory>
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--<PreferenceCategory-->
+    <!--android:title="Playing Options">-->
+    <!--<ListPreference-->
+    <!--android:key="gameMode"-->
+    <!--android:title="Game Mode"-->
+    <!--android:summary="Select opponent, analysis mode or computer match"-->
+    <!--android:entryValues="@array/game_mode_values"-->
+    <!--android:entries="@array/game_mode_texts"-->
+    <!--android:defaultValue="1">-->
+    <!--</ListPreference>-->
+    <!--</PreferenceCategory>-->
+    <!--<PreferenceCategory-->
+    <PreferenceCategory
+        android:title="Color Preference">
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/color_preference_texts"
+            android:entryValues="@array/color_preference_values"
+            android:key="colorPreference"
+            android:title="Color Preference"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Difficulty">
+        <ListPreference
+            android:defaultValue="3"
+            android:entries="@array/difficulty_depth_texts"
+            android:entryValues="@array/difficulty_depth_values"
+            android:key="difficultyDepth2"
+            android:summary="@string/difficulty_depth_description"
+            android:title="Depth">
+        </ListPreference>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Hints">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="showThinking"
+            android:summary="Display computer algorithm information during search"
+            android:title="Show Computer Thinking">
+        </CheckBoxPreference>
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="bookHints"
+            android:summary="Display opening book move hints for human player"
+            android:title="Show Book Hints">
+        </CheckBoxPreference>
+        <ListPreference
+            android:defaultValue="2"
+            android:entries="@array/thinking_arrows_texts"
+            android:entryValues="@array/thinking_arrows_values"
+            android:key="thinkingArrows"
+            android:summary="Use arrows to display moves on chess board"
+            android:title="Use Arrows">
+        </ListPreference>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="User Interface">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="soundEnabled"
+            android:summary="Play sound when computer makes a move"
+            android:title="Enable Sounds">
+        </CheckBoxPreference>
+        <!--<CheckBoxPreference-->
+        <!--android:key="oneTouchMoves"-->
+        <!--android:title="One Touch Moves"-->
+        <!--android:summary="Touching a square that corresponds to one unique move makes that move immediately"-->
+        <!--android:defaultValue="false" />-->
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Other">
+        <EditTextPreference
+            android:defaultValue=""
+            android:key="bookFile"
+            android:summary="Polyglot book file in DarkKnight directory on SD Card"
+            android:title="Book Filename">
+        </EditTextPreference>
+        <!--<PreferenceScreen-->
+        <!--android:key="pgnSettings"-->
+        <!--android:title="PGN Settings"-->
+        <!--android:summary="Settings for import and export of portable game notation (PGN) data">-->
+        <!--<PreferenceCategory-->
+        <!--android:title="PGN viewer">-->
+        <!--<CheckBoxPreference-->
+        <!--android:key="viewVariations"-->
+        <!--android:title="Variations"-->
+        <!--android:summary="Include non-mainline moves"-->
+        <!--android:defaultValue="true">-->
+        <!--</CheckBoxPreference>-->
+        <!--<CheckBoxPreference-->
+        <!--android:key="viewComments"-->
+        <!--android:title="Comments"-->
+        <!--android:summary="Include user written comments"-->
+        <!--android:defaultValue="true">-->
+        <!--</CheckBoxPreference>-->
+        <!--<CheckBoxPreference-->
+        <!--android:key="viewNAG"-->
+        <!--android:title="Annotations"-->
+        <!--android:summary="Include numeric annotation glyphs (NAGs), such as ! and ?"-->
+        <!--android:defaultValue="true">-->
+        <!--</CheckBoxPreference>-->
+        <!--<CheckBoxPreference-->
+        <!--android:key="viewHeaders"-->
+        <!--android:title="Headers"-->
+        <!--android:summary="Show PGN header lines"-->
+        <!--android:defaultValue="false">-->
+        <!--</CheckBoxPreference>-->
+        <!--</PreferenceCategory>-->
+        <!--<PreferenceCategory-->
+        <!--android:title="PGN import">-->
+        <!--<CheckBoxPreference-->
+        <!--android:key="importVariations"-->
+        <!--android:title="Variations"-->
+        <!--android:summary="Include non-mainline moves"-->
+        <!--android:defaultValue="true">-->
+        <!--</CheckBoxPreference>-->
+        <!--<CheckBoxPreference-->
+        <!--android:key="importComments"-->
+        <!--android:title="Comments"-->
+        <!--android:summary="Include user written comments"-->
+        <!--android:defaultValue="true">-->
+        <!--</CheckBoxPreference>-->
+        <!--<CheckBoxPreference-->
+        <!--android:key="importNAG"-->
+        <!--android:title="Annotations"-->
+        <!--android:summary="Include numeric annotation glyphs (NAGs), such as ! and ?"-->
+        <!--android:defaultValue="true">-->
+        <!--</CheckBoxPreference>-->
+        <!--</PreferenceCategory>-->
+        <!--<PreferenceCategory-->
+        <!--android:title="PGN export">-->
+        <!--<CheckBoxPreference-->
+        <!--android:key="exportVariations"-->
+        <!--android:title="Variations"-->
+        <!--android:summary="Include non-mainline moves"-->
+        <!--android:defaultValue="true">-->
+        <!--</CheckBoxPreference>-->
+        <!--<CheckBoxPreference-->
+        <!--android:key="exportComments"-->
+        <!--android:title="Comments"-->
+        <!--android:summary="Include user written comments"-->
+        <!--android:defaultValue="true">-->
+        <!--</CheckBoxPreference>-->
+        <!--<CheckBoxPreference-->
+        <!--android:key="exportNAG"-->
+        <!--android:title="Annotations"-->
+        <!--android:summary="Include numeric annotation glyphs (NAGs), such as ! and ?"-->
+        <!--android:defaultValue="true">-->
+        <!--</CheckBoxPreference>-->
+        <!--<CheckBoxPreference-->
+        <!--android:key="exportPlayerAction"-->
+        <!--android:title="Player Actions"-->
+        <!--android:summary="Include information about draw and resign actions"-->
+        <!--android:defaultValue="false">-->
+        <!--</CheckBoxPreference>-->
+        <!--<CheckBoxPreference-->
+        <!--android:key="exportTime"-->
+        <!--android:title="Clock"-->
+        <!--android:summary="Include time information for each move"-->
+        <!--android:defaultValue="false">-->
+        <!--</CheckBoxPreference>-->
+        <!--</PreferenceCategory>-->
+        <!--</PreferenceScreen>-->
+    </PreferenceCategory>
 </PreferenceScreen>

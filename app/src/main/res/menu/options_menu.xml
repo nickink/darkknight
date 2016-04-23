@@ -27,7 +27,8 @@
         app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/item_editboard"
-        android:title="@string/edit_board"/>
+        android:title="@string/edit_board"
+        android:visible="false"/>
     <item
         android:id="@+id/bluetooth_submenu"
         android:icon="@drawable/ic_bluetooth_white_24dp"
