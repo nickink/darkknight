@@ -232,7 +232,8 @@ public class DeviceListActivity extends AppCompatActivity {
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		menu.findItem(R.id.item_bluetooth_scan).setVisible(!mBtAdapter.isDiscovering());
+		menu.findItem(R.id.item_bluetooth_scan).setVisible(false);
+		//menu.findItem(R.id.item_bluetooth_scan).setVisible(!mBtAdapter.isDiscovering());
 
 		return super.onPrepareOptionsMenu(menu);
 	}
