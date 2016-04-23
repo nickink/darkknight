@@ -13,14 +13,16 @@
     <!--</ListPreference>-->
     <!--</PreferenceCategory>-->
     <!--<PreferenceCategory-->
+    <!--<PreferenceCategory-->
     <PreferenceCategory
-        android:title="Color Preference">
+        android:title="@string/playing_options">
         <ListPreference
             android:defaultValue="0"
             android:entries="@array/color_preference_texts"
             android:entryValues="@array/color_preference_values"
             android:key="colorPreference"
-            android:title="Color Preference"/>
+            android:summary="@string/color_preference_summary"
+            android:title="@string/color_preference"/>
     </PreferenceCategory>
     <PreferenceCategory
         android:title="Difficulty">

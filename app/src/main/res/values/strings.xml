@@ -120,9 +120,9 @@
 	    <item>4</item>
 	</string-array>
 	<string-array name="color_preference_texts">
-		<item>Choose Randomly</item>
-		<item>Always Play White</item>
-		<item>Always Play Black</item>
+		<item>Choose randomly</item>
+		<item>Always play white</item>
+		<item>Always play black</item>
 	</string-array>
 	<string-array name="color_preference_values">
 		<item>0</item>
@@ -371,4 +371,7 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="bluetooth_scanning">Scanning for devices…</string>
 	<string name="no_permission_to_scan_bluetooth_devices">Dark Knight does not have permission to scan for Bluetooth devices.</string>
 	<string name="loading_pgn_failed">Loading PGN failed.</string>
+	<string name="color_preference">Color Preference</string>
+	<string name="color_preference_summary">Color to use when creating a new game</string>
+	<string name="playing_options">Playing Options</string>
 </resources>

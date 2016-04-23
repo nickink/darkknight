@@ -860,7 +860,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				break;
 			case REQUEST_ENABLE_BT:
 				// when the request to enable Bluetooth returns
-				if (resultCode == Activity.RESULT_OK) {
+				if (resultCode >= 0) {
 					switchFromEngineToBluetooth();
 				} else {
 					// Bluetooth not enabled or an error occurred
@@ -871,7 +871,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				break;
 		}
 
-		ActivityCompat.invalidateOptionsMenu(this);
+		invalidateUi();
 	}
 
 	private void loadPGN(String pgn) {
