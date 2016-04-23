@@ -148,7 +148,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		}
 
 		if (mGameController == null) {
-			Toast.makeText(this, "Could not initialize game controller.", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, R.string.could_not_initialize_game_controller, Toast.LENGTH_LONG).show();
 			finish();
 			return;
 		}
@@ -189,7 +189,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		}
 
 		String currentPgnFile = getCurrentPgnFile();
-		if (mGameController.getGameMode() == null && TextUtils.isEmpty(currentPgnFile)) {
+		if (mGameController.getGameMode() == null && TextUtils.isEmpty(currentPgnFile)
+				&& !(mGameController instanceof BluetoothGameController)) {
 			createNewGame();
 		} else if (!TextUtils.isEmpty(currentPgnFile)) {
 			mGameController.setGameMode(GameMode.ANALYSIS);
@@ -375,10 +376,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					ActivityCompat.invalidateOptionsMenu(DarkKnightActivity.this);
 				}
 			});
-		} else if (mGameController != null && mGameController.getGame() != null) {
-			Game.Status status = mGameController.getGame().getGameStatus();
-
-			if (status != Game.Status.ALIVE) {
+		} else if (mGameController != null) {
+			if (mGameController.getGame() == null
+					|| mGameController.getGame().getGameStatus() != Game.Status.ALIVE) {
 				mFab.show();
 				canResign = false;
 			} else {
@@ -554,7 +554,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		startAnalysisMenuItem.setVisible(canAnalyze && !isUsingBluetooth);
 		stopAnalysisMenuItem.setVisible(hasGame && !canAnalyze && !isUsingBluetooth);
 		flipBoardMenuItem.setVisible(hasGame && !canAnalyze && !isUsingBluetooth);
-		resignMenuItem.setVisible(canResign && canAnalyze);
+		resignMenuItem.setVisible(gameIsAlive && canResign && canAnalyze);
 		stopGameMenuItem.setEnabled(gameIsAlive && canAnalyze);
 
 		// stop game button is actually just a "feel good" resign button, although it can also
@@ -631,6 +631,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			return;
 		}
 
+		mGameController.setGui(null);
 		mGameController.stopGame();
 		mGameController = null;
 
@@ -750,10 +751,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				return true;
 			case R.id.bluetooth_disconnect:
 				mGameController.stopGame();
-				mChessBoardView.setPosition(null);
-				moveListView.setText(null);
-				mStatusView.setText(null);
-				mFab.show();
 				break;
 			case R.id.item_about:
 				showDialog(ABOUT_DIALOG);
@@ -806,7 +803,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	}
 
 	private GameMode getNextColor() {
-		final int colorPreference = mSettings.getInt("colorPreference", 0);
+		final int colorPreference = Integer.valueOf(mSettings.getString("colorPreference", "0"));
 
 		switch (colorPreference) {
 			case 1:
@@ -868,10 +865,12 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 							Snackbar.LENGTH_LONG).show();
 				}
 
+				invalidateUi();
+
 				break;
 		}
 
-		invalidateUi();
+		ActivityCompat.invalidateOptionsMenu(this);
 	}
 
 	private void loadPGN(String pgn) {
@@ -936,6 +935,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	@Override
 	public void onNewGameStarted() {
+		if (mGameController.getGame() == null) {
+			throw new IllegalStateException("An internal error occurred, game was null");
+		}
+
 		resetChessBoardView();
 		setBoardFlip();
 		invalidateUi();
@@ -1003,7 +1006,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	@Override
 	public void onGamePaused() {
-
+		disableChessBoard();
 	}
 
 	@Override

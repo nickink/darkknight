@@ -116,8 +116,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	@Override
 	public void stopGame() {
 		stopBluetoothService();
-
-		getGui().onGameStopped();
+		getGui().onGamePaused();
 	}
 
 	@Override
@@ -391,9 +390,11 @@ public class BluetoothGameController extends AbstractGameController implements B
 	@Override
 	public void onBluetoothConnectionLost(@Nullable BluetoothDevice device) {
 		if (isGameActive()) {
-			pauseGame();
+			getGui().onOpponentDisconnected(device != null ? device.getName() : null);
+		} else {
+			// game was stopped by user, presumably?
+			game = null;
+			getGui().onGameStopped();
 		}
-
-		getGui().onOpponentDisconnected(device != null ? device.getName() : null);
 	}
 }

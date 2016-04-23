@@ -374,4 +374,5 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="color_preference">Color Preference</string>
 	<string name="color_preference_summary">Color to use when creating a new game</string>
 	<string name="playing_options">Playing Options</string>
+	<string name="could_not_initialize_game_controller">Could not initialize game controller.</string>
 </resources>
