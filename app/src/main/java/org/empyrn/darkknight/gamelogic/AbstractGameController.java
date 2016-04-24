@@ -1,6 +1,8 @@
 package org.empyrn.darkknight.gamelogic;
 
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -24,6 +26,10 @@ public abstract class AbstractGameController implements GameController {
 
 	private PgnToken.PgnTokenReceiver mPgnTokenReceiver;
 
+
+	protected final void postEvent(Runnable r) {
+		new Handler(Looper.getMainLooper()).post(r);
+	}
 
 	public final @Nullable PgnToken.PgnTokenReceiver getGameTextListener() {
 		return mPgnTokenReceiver;

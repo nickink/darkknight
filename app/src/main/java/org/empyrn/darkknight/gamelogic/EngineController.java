@@ -3,10 +3,10 @@ package org.empyrn.darkknight.gamelogic;
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.util.Log;
 
 import org.empyrn.darkknight.BuildConfig;
@@ -50,6 +50,8 @@ public class EngineController extends AbstractGameController implements GameCont
 	// quick lock to enable when briefly restarting the analysis thread after playing a move,
 	// to provide continuity for the isAnalyzing() method in multi-threaded environments
 	private boolean isAnalysisQuickPause;
+
+	private boolean isGameResumed = false;
 
 
 	/**
@@ -203,18 +205,18 @@ public class EngineController extends AbstractGameController implements GameCont
 		return this.bookFileName;
 	}
 
-	public final void setBookFileName(String bookFileName) {
-		if (!this.bookFileName.equals(bookFileName)) {
-			this.bookFileName = bookFileName;
-			EnginePlayer.getInstance().setBookFileName(bookFileName);
-			if (analysisThread != null) {
-				stopAnalysis();
-				startAnalysis();
-			}
-
-			updateBookHints();
-		}
-	}
+//	public final void setBookFileName(String bookFileName) {
+//		if (!this.bookFileName.equals(bookFileName)) {
+//			this.bookFileName = bookFileName;
+//			EnginePlayer.getInstance().setBookFileName(bookFileName);
+//			if (analysisThread != null) {
+//				stopAnalysis();
+//				startAnalysis();
+//			}
+//
+//			updateBookHints();
+//		}
+//	}
 
 	private void updateBookHints() {
 		if (gameMode == null || game == null) {
@@ -279,7 +281,7 @@ public class EngineController extends AbstractGameController implements GameCont
 
 	@Override
 	public boolean isResumed() {
-		return !guiPaused;
+		return isGameResumed;
 	}
 
 	@Override
@@ -297,12 +299,15 @@ public class EngineController extends AbstractGameController implements GameCont
 		updateGamePaused();
 
 		getGui().setStatusString(getStatusText());
-		getGui().onGameResumed();
+		isGameResumed = true;
 
-		guiPaused = false;
+		postEvent(new Runnable() {
+			@Override
+			public void run() {
+				getGui().onGameResumed();
+			}
+		});
 	}
-
-	private boolean guiPaused = false;
 
 	@Override
 	public void pauseGame() {
@@ -322,22 +327,29 @@ public class EngineController extends AbstractGameController implements GameCont
 		getGui().onGameStopped();
 	}
 
-	private void setGuiPaused(boolean paused) {
-		guiPaused = paused;
+	@Deprecated
+	private void setGuiPaused(final boolean paused) {
+		isGameResumed = !paused;
 		updateGamePaused();
 
-		if (paused) {
-			getGui().onGamePaused();
-		}
+		postEvent(new Runnable() {
+			@Override
+			public void run() {
+				if (!isGameResumed) {
+					getGui().onGamePaused();
+				}
+			}
+		});
 	}
 
+	@Deprecated
 	private void updateGamePaused() {
 		if (gameMode == null || game == null) {
 			return;
 		}
 
 		boolean gamePaused = gameMode.analysisMode()
-				|| (isPlayerTurn() && guiPaused);
+				|| (isPlayerTurn() && !isGameResumed);
 		game.setGamePaused(gamePaused);
 		updateRemainingTime();
 	}
@@ -456,10 +468,16 @@ public class EngineController extends AbstractGameController implements GameCont
 
 		updateMoveList();
 
-		Log.i(getClass().getSimpleName(), "Restored game with type " + this.gameMode);
+		if (BuildConfig.DEBUG) {
+			Log.i(getClass().getSimpleName(), "Restored game with type " + this.gameMode);
+		}
 
-		GUIInterface guiInterface = getGui();
-		guiInterface.onGameRestored();
+		postEvent(new Runnable() {
+			@Override
+			public void run() {
+				getGui().onGameRestored();
+			}
+		});
 	}
 
 	private Game createGameFromFENorPGN(String fenPgn) throws ChessParseError {
@@ -714,25 +732,28 @@ public class EngineController extends AbstractGameController implements GameCont
 	protected void onMoveMade() {
 		super.onMoveMade();
 
-		Log.i(getClass().getSimpleName(), "onMoveMade()");
+		if (BuildConfig.DEBUG) {
+			Log.i(getClass().getSimpleName(), "onMoveMade()");
+		}
+
 		updateRemainingTime();
 	}
 
 	final public void updateRemainingTime() {
 		// Update remaining time
-		long now = System.currentTimeMillis();
-		long wTime = game.getTimeController().getRemainingTime(true, now);
-		long bTime = game.getTimeController().getRemainingTime(false, now);
-		long nextUpdate = 0;
-		if (game.getTimeController().clockRunning()) {
-			long t = game.currPos().whiteMove ? wTime : bTime;
-			nextUpdate = (t % 1000);
-			if (nextUpdate < 0)
-				nextUpdate += 1000;
-			nextUpdate += 1;
-		}
-
-		getGui().setRemainingTime(wTime, bTime, nextUpdate);
+//		long now = System.currentTimeMillis();
+//		long wTime = game.getTimeController().getRemainingTime(true, now);
+//		long bTime = game.getTimeController().getRemainingTime(false, now);
+//		long nextUpdate = 0;
+//		if (game.getTimeController().clockRunning()) {
+//			long t = game.currPos().whiteMove ? wTime : bTime;
+//			nextUpdate = (t % 1000);
+//			if (nextUpdate < 0)
+//				nextUpdate += 1000;
+//			nextUpdate += 1;
+//		}
+//
+//		getGui().setRemainingTime(wTime, bTime, nextUpdate);
 	}
 
 	private synchronized void startComputerThinking() {
@@ -766,9 +787,13 @@ public class EngineController extends AbstractGameController implements GameCont
 	protected void onEngineMoveMade(@NonNull String cmd) {
 		if (isPlayerTurn()) {
 			throw new IllegalStateException("Engine tried to make move while player was playing: " + cmd);
+		} else if (game == null) {
+			throw new IllegalStateException("Game is not initialized");
 		}
 
-		Log.i(getClass().getSimpleName(), "onEngineMoveMade(" + cmd + ")");
+		if (BuildConfig.DEBUG) {
+			Log.i(getClass().getSimpleName(), "onEngineMoveMade(" + cmd + ")");
+		}
 
 		game.processString(cmd);
 		updateGamePaused();
@@ -866,9 +891,7 @@ public class EngineController extends AbstractGameController implements GameCont
 
 	private void updateStatusText() {
 		GUIInterface guiInterface = getGui();
-		if (guiInterface != null) {
-			getGui().setStatusString(getStatusText());
-		}
+		getGui().setStatusString(getStatusText());
 	}
 
 	public void stopSearch() {
@@ -927,11 +950,7 @@ public class EngineController extends AbstractGameController implements GameCont
 
 		@Override
 		protected void onProgressUpdate(ThinkingInfo... values) {
-			final GUIInterface guiInterface = getGui();
-
-			if (guiInterface != null) {
-				guiInterface.onThinkingInfoChanged(values[0]);
-			}
+			getGui().onThinkingInfoChanged(values[0]);
 		}
 
 		@Override
@@ -1001,11 +1020,7 @@ public class EngineController extends AbstractGameController implements GameCont
 
 		@Override
 		protected void onProgressUpdate(ThinkingInfo... values) {
-			final GUIInterface guiInterface = getGui();
-
-			if (guiInterface != null) {
-				guiInterface.onThinkingInfoChanged(values[0]);
-			}
+			getGui().onThinkingInfoChanged(values[0]);
 		}
 
 		@Override
@@ -1016,18 +1031,21 @@ public class EngineController extends AbstractGameController implements GameCont
 
 			analysisThread = this;
 			isAnalysisQuickPause = false;
-			Log.i(getClass().getSimpleName(), "Analysis thread started");
+
+			if (BuildConfig.DEBUG) {
+				Log.i(getClass().getSimpleName(), "Analysis thread started");
+			}
+
 			updateStatusText();
 		}
 
 		@Override
 		protected void onPostExecute(String s) {
-			Log.i(getClass().getSimpleName(), "Analysis thread stopped");
-
-			GUIInterface guiInterface = getGui();
-			if (guiInterface != null) {
-				guiInterface.onThinkingInfoChanged(null);
+			if (BuildConfig.DEBUG) {
+				Log.i(getClass().getSimpleName(), "Analysis thread stopped");
 			}
+
+			getGui().onThinkingInfoChanged(null);
 		}
 
 		protected void stop() {

@@ -973,13 +973,20 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	@Override
 	public void onGameResumed() {
-		Log.i(getClass().getSimpleName(), "Game resumed at position " + mGameController.getGame().currPos().getFEN());
+		if (BuildConfig.DEBUG) {
+			Log.i(getClass().getSimpleName(), "Game resumed at position " + mGameController.getGame().currPos().getFEN());
+		}
 
 		mChessBoardView.setPosition(mGameController.getGame().currPos());
 		mChessBoardView.setSelectionFromMove(mGameController.getGame().getLastMove());
 		enableChessBoard();
 
 		moveListView.setText(getPGNTokenReceiver().getSpannableData());
+	}
+
+	@Override
+	public void onGamePaused() {
+		disableChessBoard();
 	}
 
 	@Override
@@ -1002,11 +1009,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	public void onAnalysisInterrupted() {
 		Toast.makeText(this, R.string.analysis_was_interrupted, Toast.LENGTH_SHORT).show();
 		invalidateUi();
-	}
-
-	@Override
-	public void onGamePaused() {
-		disableChessBoard();
 	}
 
 	@Override
@@ -1132,7 +1134,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				final CharSequence[] items = {getString(R.string.queen),
 						getString(R.string.rook), getString(R.string.bishop),
 						getString(R.string.knight)};
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AppTheme_Dialog_Alert);
 				builder.setTitle(R.string.promote_pawn_to);
 				builder.setItems(items, new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int item) {
@@ -1164,7 +1166,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					actions.add(REMOVE_VARIATION);
 				}
 				final List<Integer> finalActions = actions;
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AppTheme_Dialog_Alert);
 				builder.setTitle(R.string.tools_menu);
 				builder.setItems(lst.toArray(new CharSequence[4]),
 						new DialogInterface.OnClickListener() {
@@ -1210,7 +1212,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				return builder.create();
 			}
 			case ABOUT_DIALOG: {
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AppTheme_Dialog_Alert);
 				builder.setTitle(R.string.app_name).setMessage(R.string.about_info);
 				return builder.create();
 			}
@@ -1274,7 +1276,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 						break;
 					}
 				}
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AppTheme_Dialog_Alert);
 				builder.setTitle(R.string.select_opening_book_file);
 				builder.setSingleChoiceItems(items, defaultItem,
 						new DialogInterface.OnClickListener() {
@@ -1294,7 +1296,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				final String[] fileNames = findFilesInDirectory(PGN_DIR);
 				final int numFiles = fileNames.length;
 				if (numFiles == 0) {
-					AlertDialog.Builder builder = new AlertDialog.Builder(this);
+					AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AppTheme_Dialog_Alert);
 					builder.setTitle(R.string.app_name).setMessage(
 							R.string.no_pgn_files);
 					return builder.create();
@@ -1309,7 +1311,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					}
 				}
 
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AppTheme_Dialog_Alert);
 				builder.setTitle(R.string.select_pgn_file);
 				builder.setSingleChoiceItems(fileNames, defaultItem,
 						new DialogInterface.OnClickListener() {
@@ -1330,7 +1332,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				return builder.create();
 			}
 			case CONFIRM_RESIGN_DIALOG: {
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AppTheme_Dialog_Alert);
 				builder.setMessage(R.string.confirm_resign)
 						.setPositiveButton(android.R.string.yes,
 								new DialogInterface.OnClickListener() {
@@ -1427,7 +1429,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		}
 
 		Snackbar.make(mCoordinatorView, error, Snackbar.LENGTH_INDEFINITE).show();
-		mGameController.stopGame();
+		mGameController.pauseGame();
+		canResign = false;
+
+		mFab.show();
+		ActivityCompat.invalidateOptionsMenu(this);
 	}
 
 	@Override

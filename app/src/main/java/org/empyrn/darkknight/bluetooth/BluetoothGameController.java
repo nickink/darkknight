@@ -3,8 +3,8 @@ package org.empyrn.darkknight.bluetooth;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
-import android.content.Intent;
-import android.net.NetworkInfo;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -28,6 +28,8 @@ public class BluetoothGameController extends AbstractGameController implements B
 	private Game game;
 
 	private GameMode mGameMode;
+
+	private boolean isGameResumed = false;
 
 	@Deprecated
 	private static BluetoothGameController mLastInstance;
@@ -116,7 +118,14 @@ public class BluetoothGameController extends AbstractGameController implements B
 	@Override
 	public void stopGame() {
 		stopBluetoothService();
-		getGui().onGamePaused();
+		game = null;
+
+		postEvent(new Runnable() {
+			@Override
+			public void run() {
+				getGui().onGameStopped();
+			}
+		});
 	}
 
 	@Override
@@ -181,20 +190,25 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 		// the game state can't actually be restored directly from Bluetooth, but if this is a
 		// "last instance" Bluetooth controller, it can be resumed at least
-
 		updateMoveList();
 
-		GUIInterface guiInterface = getGui();
-		if (guiInterface != null) {
-			guiInterface.onGameRestored();
-		} else {
-			Log.w(getClass().getSimpleName(), "Restored game without a GUI -- this is not recommended");
-		}
+		postEvent(new Runnable() {
+			@Override
+			public void run() {
+				getGui().onGameRestored();
+			}
+		});
 	}
 
 	@Override
 	public void resumeGame() {
-		getGui().onGameResumed();
+		isGameResumed = true;
+		postEvent(new Runnable() {
+			@Override
+			public void run() {
+				getGui().onGameResumed();
+			}
+		});
 	}
 
 	public void sendMove(Move m) {
@@ -215,8 +229,15 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public void pauseGame() {
+		isGameResumed = false;
 		// not really possible to implement over Bluetooth, although a temporarily lost connection
 		// is equivalent
+		postEvent(new Runnable() {
+			@Override
+			public void run() {
+				getGui().onGamePaused();
+			}
+		});
 	}
 
 	@Override
@@ -234,7 +255,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public boolean isResumed() {
-		return isGameActive();
+		return isGameResumed;
 	}
 
 	@Override
@@ -389,7 +410,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public void onBluetoothConnectionLost(@Nullable BluetoothDevice device) {
-		if (isGameActive()) {
+		if (super.isGameActive()) {
 			getGui().onOpponentDisconnected(device != null ? device.getName() : null);
 		} else {
 			// game was stopped by user, presumably?
