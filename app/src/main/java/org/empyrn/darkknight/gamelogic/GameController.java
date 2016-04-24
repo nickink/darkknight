@@ -33,6 +33,8 @@ public interface GameController {
 	boolean isGameStarting();
 	boolean isGameResumed();
 
+	boolean canResumeGame();
+
 	/**
 	 * Resume the game.
 	 */

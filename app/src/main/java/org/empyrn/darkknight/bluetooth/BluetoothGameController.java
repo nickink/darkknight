@@ -205,7 +205,9 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public void resumeGame() {
-		if (isGameResumed) {
+		if (isGameStarting() || isConnected()) {
+			throw new IllegalStateException("Game is already starting");
+		} else if (isGameResumed) {
 			throw new IllegalStateException("Game is already resumed");
 		}
 
@@ -279,6 +281,11 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	@Override
+	public boolean canResumeGame() {
+		return false;
+	}
+
+	@Override
 	public boolean isAnalyzing() {
 		return false;
 	}
@@ -321,6 +328,11 @@ public class BluetoothGameController extends AbstractGameController implements B
 	public boolean isListening() {
 		return mBluetoothGameEventListener != null && mBluetoothGameEventListener.getState()
 				== BluetoothGameEventListener.State.STATE_LISTEN;
+	}
+
+	public boolean isConnected() {
+		return mBluetoothGameEventListener != null && mBluetoothGameEventListener.getState()
+				== BluetoothGameEventListener.State.STATE_CONNECTED;
 	}
 
 	@Override
@@ -419,8 +431,6 @@ public class BluetoothGameController extends AbstractGameController implements B
 			} else {
 				BluetoothGameController.this.sendMessage("iplayblack");
 			}
-
-			resumeGame();
 		} else {
 			getGui().onConnectedToOpponent(mContext.getString(R.string.connected_to_bluetooth_device, device.getName()));
 		}

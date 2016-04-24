@@ -466,7 +466,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			loadPGN(pgnData);
 		}
 
-		if (mGameController.hasGame() && !(mGameController.isGameStarting() || mGameController.isGameResumed())) {
+		if (mGameController.hasGame() && mGameController.canResumeGame()) {
 			mGameController.resumeGame();
 		}
 
@@ -975,7 +975,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 					Snackbar.LENGTH_SHORT).show();
 		}
 
-		mGameController.resumeGame();
+		if (mGameController.canResumeGame()) {
+			mGameController.resumeGame();
+		}
 	}
 
 

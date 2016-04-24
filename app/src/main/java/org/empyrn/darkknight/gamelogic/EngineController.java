@@ -305,6 +305,11 @@ public class EngineController extends AbstractGameController implements GameCont
 	}
 
 	@Override
+	public boolean canResumeGame() {
+		return !(isGameStarting() || isGameResumed());
+	}
+
+	@Override
 	public void resumeGame() {
 		if (game == null) {
 			throw new IllegalStateException("Game hasn't been initialized yet");
