@@ -232,6 +232,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 		if (doMove(m)) {
 			sendMove(m);
+			findValidDrawClaim();
 			onMoveMade();
 		}
 	}
