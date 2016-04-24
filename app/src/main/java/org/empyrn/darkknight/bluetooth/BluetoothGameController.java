@@ -114,6 +114,10 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public void stopGame(boolean withCallback) {
+		if (isResumed()) {
+			pauseGame();
+		}
+
 		stopBluetoothService();
 		game = null;
 
@@ -201,6 +205,10 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public void resumeGame() {
+		if (isGameResumed) {
+			throw new IllegalStateException("Game is already resumed");
+		}
+
 		isGameResumed = true;
 		postEvent(new Runnable() {
 			@Override

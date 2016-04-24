@@ -1,5 +1,9 @@
 package org.empyrn.darkknight;
 
+import android.support.annotation.NonNull;
+
+import org.empyrn.darkknight.gamelogic.Game;
+
 public enum GameMode {
 
 	PLAYER_WHITE,
@@ -23,7 +27,11 @@ public enum GameMode {
 		return this == ANALYSIS;
 	}
 
-	public final boolean isPlayerTurn(boolean whiteMove) {
+	public final boolean isPlayerTurn(@NonNull Game game) {
+		return isPlayerTurn(game.currPos().whiteMove);
+	}
+
+	private boolean isPlayerTurn(boolean whiteMove) {
 		return (whiteMove ? playerWhite() : playerBlack()) || (this == ANALYSIS);
 	}
 }

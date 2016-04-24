@@ -232,6 +232,11 @@ public class EngineController extends AbstractGameController implements GameCont
 	}
 
 	@Override
+	public boolean isOpponentThinking() {
+		return computerThread != null;
+	}
+
+	@Override
 	public final void startGame() {
 		if (getGameMode() == null) {
 			throw new IllegalStateException("Game mode not set to start new game");
@@ -294,6 +299,8 @@ public class EngineController extends AbstractGameController implements GameCont
 			throw new IllegalStateException("Game hasn't been initialized yet");
 		} else if (analysisThread != null) {
 			throw new IllegalStateException("Cannot be analyzing before resuming game");
+		} else if (isResumed()) {
+			throw new IllegalStateException("Game is already resumed");
 		}
 
 		updateMoveList();
@@ -322,6 +329,10 @@ public class EngineController extends AbstractGameController implements GameCont
 
 	@Override
 	public void stopGame(boolean withCallback) {
+		if (isResumed()) {
+			pauseGame();
+		}
+
 		if (hasGame()) {
 			shutdownEngine();
 			gameMode = null;

@@ -388,19 +388,25 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			}
 		}
 
-		if (mGameController != null && mGameController.getGame() != null) {
+		boolean chessboardEnabled;
+		if (mGameController != null && mGameController.hasGame()) {
 			updateMoveListDisplay();
 			updateThinkingInfoDisplay();
+
+			mChessBoardView.setPosition(mGameController.getGame().currPos());
 			mChessBoardView.setSelectionFromMove(mGameController.getGame().getLastMove());
+
+			chessboardEnabled = mGameController.isGameActive() || mGameController.isAnalyzing();
+			setBoardFlip();
 		} else {
 			moveListView.setText(null);
 			mChessBoardView.clearMoveHints();
 			mChessBoardView.clearSelection();
 			mChessBoardView.setPosition(null);
+
+			chessboardEnabled = false;
 		}
 
-		final boolean chessboardEnabled = mGameController != null
-				&& (mGameController.isGameActive() || mGameController.isAnalyzing());
 		if (chessboardEnabled) {
 			enableChessBoard();
 		} else {
@@ -552,6 +558,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		final boolean canAnalyze = hasGame && !mGameController.isAnalyzing();
 		startAnalysisMenuItem.setVisible(canAnalyze && !isUsingBluetooth);
+		startAnalysisMenuItem.setEnabled(!mGameController.isOpponentThinking());
 		stopAnalysisMenuItem.setVisible(hasGame && !canAnalyze && !isUsingBluetooth);
 		flipBoardMenuItem.setVisible(hasGame && !canAnalyze && !isUsingBluetooth);
 
@@ -567,7 +574,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		final MenuItem bluetoothSubmenu = menu.findItem(R.id.bluetooth_submenu);
 		bluetoothSubmenu.setVisible(hasBluetooth);
-		bluetoothSubmenu.setEnabled(mGameController == null || !mGameController.isAnalyzing());
+		bluetoothSubmenu.setEnabled(mGameController == null || (!mGameController.isAnalyzing()
+				&& !mGameController.isOpponentThinking()));
 		if (hasBluetooth) {
 			final boolean isConnected = isUsingBluetooth && gameIsAlive && mGameController.isGameActive();
 			bluetoothSubmenu.setIcon(isConnected ?
@@ -680,13 +688,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			case R.id.item_start_analysis:
 				((EngineController) mGameController).switchToAnalysisMode();
 				boardFlippedForAnalysis = getBoardFlipFromCurrentPosition();
-				setBoardFlip();
 				invalidateUi();
 				return true;
 			case R.id.item_stop_analysis:
 				((EngineController) mGameController).switchToComputerPlayMode();
 				mChessBoardView.setMoveHints(null);
-				setBoardFlip();
 				invalidateUi();
 				return true;
 			case R.id.item_flip_board:
@@ -951,8 +957,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			Log.i(getClass().getSimpleName(), "Game started at position " + mGameController.getGame().currPos().getFEN());
 		}
 
-		resetChessBoardView();
-		setBoardFlip();
 		invalidateUi();
 
 		if (mGameController.getGameMode() != GameMode.ANALYSIS) {
@@ -969,7 +973,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	public void onGameRestored() {
 		resetChessBoardView();
 		setBoardFlip();
-		invalidateUi();
+		resetChessBoardView();
 
 		if (mGameController.isResumed()) {
 			return;
@@ -984,11 +988,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			Log.i(getClass().getSimpleName(), "Game resumed at position " + mGameController.getGame().currPos().getFEN());
 		}
 
-		mChessBoardView.setPosition(mGameController.getGame().currPos());
-		mChessBoardView.setSelectionFromMove(mGameController.getGame().getLastMove());
-		enableChessBoard();
-
-		moveListView.setText(getPGNTokenReceiver().getSpannableData());
+		invalidateUi();
 	}
 
 	@Override
@@ -1042,7 +1042,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	}
 
 	private void updateThinkingInfoDisplay() {
-		if (mGameController == null) {
+		if (mGameController == null || !mGameController.hasGame()) {
 			return;
 		}
 
@@ -1460,7 +1460,9 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	@SuppressWarnings("ConstantConditions")
 	@Override
 	public void onMoveMade(Move m) {
-		Log.d(getClass().getSimpleName(), "Move made: " + m);
+		if (BuildConfig.DEBUG) {
+			Log.d(getClass().getSimpleName(), "Move made: " + m);
+		}
 
 		mChessBoardView.setSelectionFromMove(m);
 		mChessBoardView.setPosition(mGameController.getGame().currPos());
@@ -1491,17 +1493,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	@Override
 	public void onMoveUnmade(Move m) {
-		mChessBoardView.clearSelection();
-		mChessBoardView.setPosition(mGameController.getGame().currPos());
-		moveListView.setText(getPGNTokenReceiver().getSpannableData());
 		invalidateUi();
 	}
 
 	@Override
 	public void onMoveRemade(Move m) {
-		mChessBoardView.clearSelection();
-		mChessBoardView.setPosition(mGameController.getGame().currPos());
-		moveListView.setText(getPGNTokenReceiver().getSpannableData());
 		invalidateUi();
 	}
 

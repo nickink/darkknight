@@ -189,7 +189,7 @@ public abstract class AbstractGameController implements GameController {
 	}
 
 	public final boolean hasGame() {
-		return getGame() != null;
+		return getGameMode() != null && getGame() != null;
 	}
 
 	@Override
@@ -262,17 +262,12 @@ public abstract class AbstractGameController implements GameController {
 	/** True if human's turn to make a move. (True in analysis mode.) */
 	public final boolean isPlayerTurn() {
 		return getGame() != null && getGameMode() != null
-					&& getGameMode().isPlayerTurn((getGameMode() == GameMode.PLAYER_WHITE)
-				== getGame().currPos().whiteMove);
+					&& getGameMode().isPlayerTurn(getGame());
 	}
 
 	/** Return true if computer player is using CPU power. */
-	public final boolean isOpponentThinking() {
-		if (getGame() == null) {
-			throw new IllegalStateException();
-		}
-
-		return getGame().getGameStatus() == Game.Status.ALIVE
+	public boolean isOpponentThinking() {
+		return getGame() != null && getGame().getGameStatus() == Game.Status.ALIVE
 				&& (getGameMode() == GameMode.ANALYSIS || !isPlayerTurn());
 	}
 
