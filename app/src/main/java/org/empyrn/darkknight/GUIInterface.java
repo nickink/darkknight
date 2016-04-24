@@ -83,9 +83,6 @@ public interface GUIInterface {
 	void showMessage(CharSequence message, int duration);
 
 	@Deprecated
-	void showToast(CharSequence message, int duration);
-
-	@Deprecated
 	void dismissMessage();
 
 	@Deprecated

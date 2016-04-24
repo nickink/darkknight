@@ -227,7 +227,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	@Override
 	public void tryPlayMove(Move m) {
 		if (!isPlayerTurn()) {
-			throw new IllegalStateException();
+			throw new IllegalStateException("Cannot play move during player turn");
 		}
 
 		if (doMove(m)) {
@@ -378,6 +378,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 		if (isPlayerTurn()) {
 			Toast.makeText(mContext, R.string.your_opponent_attempted_to_make_a_move_during_your_turn,
 					Toast.LENGTH_SHORT).show();
+			stopGame();
 			return;
 		}
 
@@ -440,7 +441,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	@Override
 	public void onBluetoothConnectionFailed(BluetoothDevice device) {
 		setGameMode(null);
-		getGui().showToast(mContext.getString(R.string.connection_to_bluetooth_device_failed), Toast.LENGTH_LONG);
+		Toast.makeText(mContext, mContext.getString(R.string.connection_to_bluetooth_device_failed), Toast.LENGTH_LONG).show();
 	}
 
 	@Override

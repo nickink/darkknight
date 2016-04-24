@@ -549,7 +549,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		recreateActivityMenuItem.setVisible(BuildConfig.DEBUG);
 
 		final boolean hasGame = mGameController != null && mGameController.getGame() != null;
-		final boolean isUsingBluetooth = mGameController instanceof BluetoothGameController;
+		final boolean hasBluetooth = hasBluetooth();
+		final boolean isUsingBluetooth = isUsingBluetooth();
 		final boolean gameIsAlive = hasGame
 				&& mGameController.getGame().getGameStatus() == Game.Status.ALIVE;
 		final boolean isPlayerTurn = hasGame && mGameController.isPlayerTurn();
@@ -559,8 +560,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		forceMoveMenuItem.setEnabled(hasGame && !isUsingBluetooth
 				&& mGameController.isOpponentThinking());
 		offerDrawMenuItem.setEnabled(isPlayerTurn);
-
-		final boolean hasBluetooth = BluetoothAdapter.getDefaultAdapter() != null;
 
 		final boolean canAnalyze = hasGame && !mGameController.isAnalyzing();
 		startAnalysisMenuItem.setVisible(canAnalyze && !isUsingBluetooth);
@@ -580,13 +579,16 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		final MenuItem bluetoothSubmenu = menu.findItem(R.id.bluetooth_submenu);
 		bluetoothSubmenu.setVisible(hasBluetooth);
-		bluetoothSubmenu.setEnabled(mGameController == null || (!mGameController.isAnalyzing()
-				&& !mGameController.isOpponentThinking()));
 		if (hasBluetooth) {
 			final boolean isConnected = isUsingBluetooth && gameIsAlive && mGameController.isGameActive();
 			bluetoothSubmenu.setIcon(isConnected ?
 					ContextCompat.getDrawable(this, R.drawable.ic_bluetooth_connected_white_24dp) :
 					ContextCompat.getDrawable(this, R.drawable.ic_bluetooth_white_24dp));
+			bluetoothSubmenu.setEnabled(
+					mGameController == null
+							|| isConnected
+							|| !(mGameController.isAnalyzing()
+									|| mGameController.isOpponentThinking()));
 
 			if (isUsingBluetooth && !isConnected) {
 				// if not connected to Bluetooth, resigning is definitely not available
@@ -598,10 +600,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 			final MenuItem bluetoothDiscoverableMenuItem = menu.findItem(R.id.bluetooth_set_discoverable);
 
-			final boolean isListeningOnBluetooth = isUsingBluetooth
-					&& ((BluetoothGameController) mGameController).isListening();
-			bluetoothDiscoverableMenuItem.setChecked(isUsingBluetooth && isBluetoothDiscoverable()
-					&& (isListeningOnBluetooth || isConnected));
+			bluetoothDiscoverableMenuItem.setChecked(isActiveOnBluetooth());
 			bluetoothDiscoverableMenuItem.setEnabled(!isConnected);
 
 			final MenuItem disconnectMenuItem = menu.findItem(R.id.bluetooth_disconnect);
@@ -609,6 +608,29 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		}
 
 		return true;
+	}
+
+	private boolean hasBluetooth() {
+		return BluetoothAdapter.getDefaultAdapter() != null;
+	}
+
+	private boolean isUsingBluetooth() {
+		return hasBluetooth() && (mGameController instanceof BluetoothGameController);
+	}
+
+	private boolean isListeningOnBluetooth() {
+		return isUsingBluetooth()
+				&& ((BluetoothGameController) mGameController).isListening();
+	}
+
+	private boolean isConnectedOnBluetooth() {
+		return isUsingBluetooth()
+				&& ((BluetoothGameController) mGameController).isConnected();
+	}
+
+	private boolean isActiveOnBluetooth() {
+		return isUsingBluetooth() && isBluetoothDiscoverable()
+				&& (isListeningOnBluetooth() || isConnectedOnBluetooth());
 	}
 
 	private boolean isBluetoothDiscoverable() {
@@ -758,7 +780,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
 				return true;
 			case R.id.bluetooth_set_discoverable:
-				if (!item.isChecked()) {
+				if (!isActiveOnBluetooth()) {
 					if (isBluetoothDiscoverable()) {
 						switchFromEngineToBluetooth();
 					} else {
@@ -1012,11 +1034,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	public void showMessage(CharSequence message, int duration) {
 		mCurrentSnackbar = Snackbar.make(mCoordinatorView, message, duration);
 		mCurrentSnackbar.show();
-	}
-
-	@Override
-	public void showToast(CharSequence message, int duration) {
-		Toast.makeText(this, message, duration).show();
 	}
 
 	@Override
@@ -1533,8 +1550,28 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	@Override
 	public void onGameOver(Game.Status endState) {
-		Snackbar.make(mCoordinatorView, getString(R.string.game_over, getStringFromGameStatus(endState)),
-				Snackbar.LENGTH_SHORT).show();
+		Snackbar s = Snackbar.make(mCoordinatorView, getString(R.string.game_over,
+				getStringFromGameStatus(endState)),
+				Snackbar.LENGTH_SHORT);
+
+		final boolean isUsingBluetooth = mGameController instanceof BluetoothGameController;
+
+		if (isUsingBluetooth) {
+			s.setDuration(Snackbar.LENGTH_INDEFINITE);
+
+			s.setAction(R.string.set_discoverable, new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					if (!isBluetoothDiscoverable()) {
+						setBluetoothDiscoverable();
+					} else {
+						((BluetoothGameController) mGameController).setupBluetoothService();
+					}
+				}
+			});
+		}
+
+		s.show();
 
 		mChessBoardView.clearSelection();
 		mChessBoardView.setPosition(mGameController.getGame().currPos());

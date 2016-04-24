@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import org.empyrn.darkknight.BuildConfig;
 import org.empyrn.darkknight.GUIInterface;
 import org.empyrn.darkknight.GameMode;
 import org.empyrn.darkknight.PGNOptions;
@@ -165,11 +166,6 @@ public abstract class AbstractGameController implements GameController {
 		}
 
 		@Override
-		public void showToast(CharSequence message, int duration) {
-
-		}
-
-		@Override
 		public void dismissMessage() {
 
 		}
@@ -210,7 +206,9 @@ public abstract class AbstractGameController implements GameController {
 			throw new IllegalStateException("Game is not initialized");
 		}
 
-		Log.d(getClass().getSimpleName(), "Controller: playing move " + move);
+		if (BuildConfig.DEBUG) {
+			Log.d(getClass().getSimpleName(), "Controller: playing move " + move);
+		}
 
 		Position pos = getGame().currPos();
 		Set<Move> moves = MoveGenerator.INSTANCE.generateLegalMoves(pos);
@@ -318,7 +316,8 @@ public abstract class AbstractGameController implements GameController {
 
 	protected abstract void onGameStatusChanged(Game.Status status);
 
-	protected @Deprecated void onPositionChanged() {
+	@Deprecated
+	protected void onPositionChanged() {
 		if (getGameMode() != GameMode.ANALYSIS) {
 			return;
 		}
@@ -406,7 +405,7 @@ public abstract class AbstractGameController implements GameController {
 		}
 	}
 
-	private boolean findValidDrawClaim() {
+	protected final boolean findValidDrawClaim() {
 		if (getGame() == null) {
 			throw new IllegalStateException("Game is not initialized");
 		}
