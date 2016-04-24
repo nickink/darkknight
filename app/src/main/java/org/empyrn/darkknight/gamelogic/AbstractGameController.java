@@ -265,12 +265,6 @@ public abstract class AbstractGameController implements GameController {
 					&& getGameMode().isPlayerTurn(getGame());
 	}
 
-	/** Return true if computer player is using CPU power. */
-	public boolean isOpponentThinking() {
-		return getGame() != null && getGame().getGameStatus() == Game.Status.ALIVE
-				&& (getGameMode() == GameMode.ANALYSIS || !isPlayerTurn());
-	}
-
 	protected void updateMoveList() {
 		if (getGameTextListener() == null) {
 			return;
@@ -311,6 +305,7 @@ public abstract class AbstractGameController implements GameController {
 			updateMoveList();
 
 			if (getGame().getGameStatus() != Game.Status.ALIVE) {
+				onGameStatusChanged(getGame().getGameStatus());
 				getGui().onGameOver(getGame().getGameStatus());
 			} else {
 				Move lastMove = getGame().getLastMove();
@@ -320,6 +315,8 @@ public abstract class AbstractGameController implements GameController {
 			}
 		}
 	}
+
+	protected abstract void onGameStatusChanged(Game.Status status);
 
 	protected @Deprecated void onPositionChanged() {
 		if (getGameMode() != GameMode.ANALYSIS) {

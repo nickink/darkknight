@@ -30,6 +30,9 @@ public interface GameController {
 	 */
 	void startGame();
 
+	boolean isGameStarting();
+	boolean isGameResumed();
+
 	/**
 	 * Resume the game.
 	 */
@@ -66,7 +69,6 @@ public interface GameController {
 	boolean canUndoMove();
 	boolean canRedoMove();
 
-	boolean isResumed();
 	boolean isAnalyzing();
 	boolean isAnalysisQuickPause();
 

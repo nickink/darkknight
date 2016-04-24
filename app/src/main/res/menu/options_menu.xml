@@ -65,7 +65,8 @@
         android:title="@string/go_to_move_number"/>
     <item
         android:id="@+id/item_force_move"
-        android:title="@string/force_computer_move"/>
+        android:title="@string/force_computer_move"
+        android:visible="false"/>
     <item
         android:id="@+id/item_about"
         android:title="@string/about_help"/>

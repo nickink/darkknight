@@ -137,6 +137,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			}
 		});
 
+		if (savedInstanceState != null) {
+			boardFlippedForAnalysis = savedInstanceState.getBoolean("BoardFlippedForAnalysis", false);
+		}
+
 		if (savedInstanceState == null || savedInstanceState.getInt("ControllerMode", MODE_ENGINE) == MODE_ENGINE) {
 			if (!initEngineController()) {
 				return;
@@ -252,6 +256,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			int gameModeOrdinal = mGameController.getGameMode().ordinal();
 			outState.putInt("GameMode", gameModeOrdinal);
 
+			if (mGameController.getGameMode() == GameMode.ANALYSIS) {
+				outState.putBoolean("BoardFlippedForAnalysis", boardFlippedForAnalysis);
+			}
+
 			if (mGameController.getGame() != null) {
 				byte[] data = mGameController.getPersistableGameState();
 				outState.putByteArray("Status", data);
@@ -337,7 +345,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		mPreviousMoveButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (mGameController == null || mGameController.isAnalysisQuickPause()) {
+				if (mGameController == null || mGameController.isAnalysisQuickPause()
+						|| mGameController.isOpponentThinking()) {
 					return;
 				}
 
@@ -349,7 +358,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		mNextMoveButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (mGameController == null || mGameController.isAnalysisQuickPause()) {
+				if (mGameController == null || mGameController.isAnalysisQuickPause()
+						|| mGameController.isOpponentThinking()) {
 					return;
 				}
 
@@ -437,10 +447,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		if (mGameController instanceof EngineController) {
 			((EngineController) mGameController).setMaxDepth(
 					Integer.valueOf(mSettings.getString("difficultyDepth2", "3")));
-
-			if (mGameController.getGameMode() == GameMode.ANALYSIS && !mGameController.isAnalyzing()) {
-				((EngineController) mGameController).switchToAnalysisMode();
-			}
 		} else if (mGameController instanceof BluetoothGameController) {
 			if (((BluetoothGameController) mGameController).isListening()) {
 				onWaitingForOpponent();
@@ -460,7 +466,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			loadPGN(pgnData);
 		}
 
-		if (mGameController.hasGame() && !mGameController.getGameMode().analysisMode()) {
+		if (mGameController.hasGame() && !(mGameController.isGameStarting() || mGameController.isGameResumed())) {
 			mGameController.resumeGame();
 		}
 
@@ -888,13 +894,17 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			throw new IllegalStateException("Must use engine controller for loading PGNs");
 		}
 
+		disableChessBoard();
+		mFab.hide();
+		ActivityCompat.invalidateOptionsMenu(this);
+
+		mGameController.stopGame(false);
+		mGameController.setGameMode(GameMode.ANALYSIS);
+		mGameController.setGameTextListener(new PGNScreenText(PreferenceManager.getDefaultSharedPreferences(this),
+				new PGNOptions()));
+
 		try {
-			mGameController.stopGame(false);
-			mGameController.setGameMode(GameMode.ANALYSIS);
-			mGameController.setGameTextListener(new PGNScreenText(PreferenceManager.getDefaultSharedPreferences(this),
-					new PGNOptions()));
 			((EngineController) mGameController).startNewGameFromFENorPGN(pgn);
-			invalidateUi();
 		} catch (ChessParseError e) {
 			Toast.makeText(getApplicationContext(), e.getMessage(),
 					Toast.LENGTH_SHORT).show();
@@ -975,7 +985,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		setBoardFlip();
 		resetChessBoardView();
 
-		if (mGameController.isResumed()) {
+		if (mGameController.isGameResumed()) {
 			return;
 		}
 
@@ -1464,20 +1474,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			Log.d(getClass().getSimpleName(), "Move made: " + m);
 		}
 
-		mChessBoardView.setSelectionFromMove(m);
-		mChessBoardView.setPosition(mGameController.getGame().currPos());
-
-		updateMoveListDisplay();
+		invalidateUi();
 
 		if (getPGNTokenReceiver().atEnd()) {
 			moveListScrollView.fullScroll(ScrollView.FOCUS_DOWN);
 		}
-
-		if (mGameController.getGameMode() == GameMode.TWO_PLAYERS) {
-			setBoardFlip();
-		}
-
-		updateUndoRedoMoveArrowVisibility();
 
 		if (!soundEnabled) {
 			return;

@@ -254,19 +254,23 @@ public class EngineController extends AbstractGameController implements GameCont
 		startNewGame(fenPgn);
 	}
 
+
+	private boolean isGameStarting;
+
 	private void startNewGame(@Nullable String fenPgn) throws ChessParseError {
 		if (getGameTextListener() == null) {
 			throw new IllegalStateException("Game text listener must be initialized");
 		} else if (gameMode == null) {
 			throw new IllegalStateException("Must set a game mode to start a new game");
+		} else if (computerThread != null || isAnalyzing()) {
+			throw new IllegalStateException("UCI thread is already running");
 		}
 
 		if (BuildConfig.DEBUG) {
 			Log.i(getClass().getSimpleName(), "Starting new game with mode " + gameMode);
 		}
 
-		stopComputerThinking();
-		stopAnalysis();
+		isGameResumed = false;
 		EnginePlayer.getInstance().clearTT();
 
 		setPlayerNames(game);
@@ -280,28 +284,37 @@ public class EngineController extends AbstractGameController implements GameCont
 			game = createGameFromFENorPGN(fenPgn);
 		}
 
+		isGameStarting = true;
 		postEvent(new Runnable() {
 			@Override
 			public void run() {
+				isGameStarting = false;
 				getGui().onGameStarted();
 			}
 		});
 	}
 
 	@Override
-	public boolean isResumed() {
-		return isGameResumed;
+	public boolean isGameStarting() {
+		return isGameStarting;
+	}
+
+	@Override
+	public boolean isGameResumed() {
+		return getGameMode() != null && getGame() != null && isGameResumed;
 	}
 
 	@Override
 	public void resumeGame() {
 		if (game == null) {
 			throw new IllegalStateException("Game hasn't been initialized yet");
-		} else if (analysisThread != null) {
+		} else if (isAnalyzing()) {
 			throw new IllegalStateException("Cannot be analyzing before resuming game");
-		} else if (isResumed()) {
+		} else if (isGameResumed()) {
 			throw new IllegalStateException("Game is already resumed");
 		}
+
+		isGameResumed = true;
 
 		updateMoveList();
 
@@ -310,7 +323,6 @@ public class EngineController extends AbstractGameController implements GameCont
 		updateGamePaused();
 
 		getGui().setStatusString(getStatusText());
-		isGameResumed = true;
 
 		postEvent(new Runnable() {
 			@Override
@@ -329,15 +341,13 @@ public class EngineController extends AbstractGameController implements GameCont
 
 	@Override
 	public void stopGame(boolean withCallback) {
-		if (isResumed()) {
+		if (isGameResumed()) {
 			pauseGame();
 		}
 
-		if (hasGame()) {
-			shutdownEngine();
-			gameMode = null;
-			game = null;
-		}
+		shutdownEngine();
+		gameMode = null;
+		game = null;
 
 		if (withCallback) {
 			postEvent(new Runnable() {
@@ -357,7 +367,7 @@ public class EngineController extends AbstractGameController implements GameCont
 		postEvent(new Runnable() {
 			@Override
 			public void run() {
-				if (!isGameResumed) {
+				if (!isGameResumed()) {
 					getGui().onGamePaused();
 				}
 			}
@@ -371,7 +381,7 @@ public class EngineController extends AbstractGameController implements GameCont
 		}
 
 		boolean gamePaused = gameMode.analysisMode()
-				|| (isPlayerTurn() && !isGameResumed);
+				|| (isPlayerTurn() && !isGameResumed());
 		game.setGamePaused(gamePaused);
 		updateRemainingTime();
 	}
@@ -382,6 +392,8 @@ public class EngineController extends AbstractGameController implements GameCont
 			throw new IllegalStateException("Cannot update compute threads when not on main thread");
 		} else if (gameMode == null) {
 			throw new IllegalStateException("Cannot update compute threads without a game mode");
+		} else if (!isGameResumed()) {
+			throw new IllegalStateException("Cannot update compute threads before game is resumed");
 		}
 
 		boolean analysis = gameMode == GameMode.ANALYSIS;
@@ -629,6 +641,10 @@ public class EngineController extends AbstractGameController implements GameCont
 	 * when button-mashing for going forward and backward in the game tree.
 	 */
 	private void startAnalysisDelayed(final int delay) {
+		if (!isGameResumed()) {
+			throw new IllegalStateException("Cannot start analysis until game is resumed");
+		}
+
 		mDelayedStartAnalysisTask = new AsyncTask<Void, Void, Void>() {
 			private boolean canStartAnalysis = true;
 
@@ -739,7 +755,7 @@ public class EngineController extends AbstractGameController implements GameCont
 			str += " (thinking)";
 		}
 
-		if (analysisThread != null) {
+		if (isAnalyzing()) {
 			str += " (analyzing)";
 		}
 
@@ -759,6 +775,15 @@ public class EngineController extends AbstractGameController implements GameCont
 		}
 
 		updateRemainingTime();
+	}
+
+	@Override
+	protected void onGameStatusChanged(Status status) {
+		if (status != Status.ALIVE) {
+			isGameResumed = false;
+			stopComputerThinking();
+			stopAnalysis();
+		}
 	}
 
 	final public void updateRemainingTime() {
@@ -802,8 +827,9 @@ public class EngineController extends AbstractGameController implements GameCont
 		final int inc = game.getTimeController().getIncrement();
 		final int movesToGo = game.getTimeController().getMovesToTC();
 
-		new ComputerMoveSelectionThread(EnginePlayer.getInstance(), ph, currPos, haveDrawOffer,
-				2000, 2000, inc, movesToGo).execute();
+		computerThread = new ComputerMoveSelectionThread(EnginePlayer.getInstance(), ph, currPos, haveDrawOffer,
+				2000, 2000, inc, movesToGo);
+		computerThread.execute();
 	}
 
 	protected void onEngineMoveMade(@NonNull String cmd) {
@@ -868,13 +894,16 @@ public class EngineController extends AbstractGameController implements GameCont
 			throw new IllegalStateException("Analysis already started");
 		} else if (mDelayedStartAnalysisTask != null) {
 			throw new IllegalStateException("Analysis is already being started with a delay");
+		} else if (isGameStarting || !isGameResumed()) {
+			throw new IllegalStateException("Cannot start analysis when not resumed");
 		}
 
 		final Pair<Position, ArrayList<Move>> ph = game.getUCIHistory();
 		final boolean haveDrawOffer = game.haveDrawOffer();
 		final Position currPos = new Position(game.currPos());
 
-		new AnalysisThread(EnginePlayer.getInstance(), ph, currPos, haveDrawOffer).execute();
+		analysisThread = new AnalysisThread(EnginePlayer.getInstance(), ph, currPos, haveDrawOffer);
+		analysisThread.execute();
 	}
 
 	private synchronized void stopAnalysis() {
@@ -912,7 +941,6 @@ public class EngineController extends AbstractGameController implements GameCont
 	}
 
 	private void updateStatusText() {
-		GUIInterface guiInterface = getGui();
 		getGui().setStatusString(getStatusText());
 	}
 
@@ -977,8 +1005,8 @@ public class EngineController extends AbstractGameController implements GameCont
 
 		@Override
 		protected void onPreExecute() {
-			if (analysisThread != null || computerThread != null) {
-				throw new IllegalStateException();
+			if (isAnalyzing() || (computerThread != null && computerThread != this)) {
+				throw new IllegalStateException("Different UCI thread already started");
 			}
 
 			computerThread = this;
@@ -1047,8 +1075,10 @@ public class EngineController extends AbstractGameController implements GameCont
 
 		@Override
 		protected void onPreExecute() {
-			if (analysisThread != null || computerThread != null) {
-				throw new IllegalStateException();
+			if ((analysisThread != null && analysisThread != this) || computerThread != null) {
+				throw new IllegalStateException("Different UCI thread is already executing");
+			} else if (isGameStarting) {
+				throw new IllegalStateException("Cannot start analysis while game is starting");
 			}
 
 			analysisThread = this;

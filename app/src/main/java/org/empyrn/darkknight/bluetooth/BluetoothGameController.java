@@ -114,7 +114,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 	@Override
 	public void stopGame(boolean withCallback) {
-		if (isResumed()) {
+		if (isGameResumed()) {
 			pauseGame();
 		}
 
@@ -235,6 +235,19 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	@Override
+	protected void onGameStatusChanged(Game.Status status) {
+		if (status != Game.Status.ALIVE) {
+			isGameResumed = false;
+		}
+	}
+
+	@Override
+	public boolean isGameStarting() {
+		return mBluetoothGameEventListener != null && mBluetoothGameEventListener.getState()
+				== BluetoothGameEventListener.State.STATE_CONNECTING;
+	}
+
+	@Override
 	public void pauseGame() {
 		isGameResumed = false;
 		// not really possible to implement over Bluetooth, although a temporarily lost connection
@@ -261,7 +274,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	@Override
-	public boolean isResumed() {
+	public boolean isGameResumed() {
 		return isGameResumed;
 	}
 
@@ -286,6 +299,11 @@ public class BluetoothGameController extends AbstractGameController implements B
 			sendMessage("draw accept");
 			onMoveMade();
 		}
+	}
+
+	@Override
+	public boolean isOpponentThinking() {
+		return isGameActive() && !isPlayerTurn();
 	}
 
 	@Override
