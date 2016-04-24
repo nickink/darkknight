@@ -397,8 +397,6 @@ public class EngineController extends AbstractGameController implements GameCont
 			throw new IllegalStateException("Cannot update compute threads when not on main thread");
 		} else if (gameMode == null) {
 			throw new IllegalStateException("Cannot update compute threads without a game mode");
-		} else if (!isGameResumed()) {
-			throw new IllegalStateException("Cannot update compute threads before game is resumed");
 		}
 
 		boolean analysis = gameMode == GameMode.ANALYSIS;
@@ -646,10 +644,6 @@ public class EngineController extends AbstractGameController implements GameCont
 	 * when button-mashing for going forward and backward in the game tree.
 	 */
 	private void startAnalysisDelayed(final int delay) {
-		if (!isGameResumed()) {
-			throw new IllegalStateException("Cannot start analysis until game is resumed");
-		}
-
 		mDelayedStartAnalysisTask = new AsyncTask<Void, Void, Void>() {
 			private boolean canStartAnalysis = true;
 
@@ -899,8 +893,8 @@ public class EngineController extends AbstractGameController implements GameCont
 			throw new IllegalStateException("Analysis already started");
 		} else if (mDelayedStartAnalysisTask != null) {
 			throw new IllegalStateException("Analysis is already being started with a delay");
-		} else if (isGameStarting || !isGameResumed()) {
-			throw new IllegalStateException("Cannot start analysis when not resumed");
+		} else if (isGameStarting()) {
+			throw new IllegalStateException("Cannot start analysis when game is starting");
 		}
 
 		final Pair<Position, ArrayList<Move>> ph = game.getUCIHistory();
