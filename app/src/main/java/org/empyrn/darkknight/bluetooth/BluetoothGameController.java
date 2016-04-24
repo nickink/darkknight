@@ -232,7 +232,6 @@ public class BluetoothGameController extends AbstractGameController implements B
 
 		if (doMove(m)) {
 			sendMove(m);
-			findValidDrawClaim();
 			onMoveMade();
 		}
 	}
@@ -356,9 +355,12 @@ public class BluetoothGameController extends AbstractGameController implements B
 	public void onBluetoothMessageReceived(BluetoothDevice fromDevice, String readMessage) {
 		if (readMessage.startsWith("iplay")) {
 			if (mGameMode != null) {
-				Toast.makeText(mContext,
-						R.string.your_opponent_tried_to_start_a_new_game,
-						Toast.LENGTH_SHORT).show();
+				if (BuildConfig.DEBUG) {
+					Toast.makeText(mContext,
+							R.string.your_opponent_tried_to_start_a_new_game,
+							Toast.LENGTH_SHORT).show();
+				}
+
 				return;
 			}
 
