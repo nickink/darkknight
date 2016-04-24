@@ -321,14 +321,21 @@ public class EngineController extends AbstractGameController implements GameCont
 	}
 
 	@Override
-	public void stopGame() {
+	public void stopGame(boolean withCallback) {
 		if (hasGame()) {
 			shutdownEngine();
 			gameMode = null;
 			game = null;
 		}
 
-		getGui().onGameStopped();
+		if (withCallback) {
+			postEvent(new Runnable() {
+				@Override
+				public void run() {
+					getGui().onGameStopped();
+				}
+			});
+		}
 	}
 
 	@Deprecated

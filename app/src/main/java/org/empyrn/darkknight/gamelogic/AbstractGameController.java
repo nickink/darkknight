@@ -446,4 +446,8 @@ public abstract class AbstractGameController implements GameController {
 	public boolean canRedoMove() {
 		return getGame() != null && getGame().canRedoMove();
 	}
+
+	public final void stopGame() {
+		stopGame(true);
+	}
 }

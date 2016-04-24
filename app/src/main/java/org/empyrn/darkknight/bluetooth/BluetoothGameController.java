@@ -113,16 +113,18 @@ public class BluetoothGameController extends AbstractGameController implements B
 	}
 
 	@Override
-	public void stopGame() {
+	public void stopGame(boolean withCallback) {
 		stopBluetoothService();
 		game = null;
 
-		postEvent(new Runnable() {
-			@Override
-			public void run() {
-				getGui().onGameStopped();
-			}
-		});
+		if (withCallback) {
+			postEvent(new Runnable() {
+				@Override
+				public void run() {
+					getGui().onGameStopped();
+				}
+			});
+		}
 	}
 
 	@Override

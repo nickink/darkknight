@@ -45,6 +45,7 @@ public interface GameController {
 	 * End the game.
 	 */
 	void stopGame();
+	void stopGame(boolean withCallback);
 
 	String getPGN();
 

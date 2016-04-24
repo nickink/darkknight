@@ -498,7 +498,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		if (isFinishing()) {
 			if (mGameController != null) {
-				mGameController.stopGame();
+				mGameController.stopGame(false);
 			}
 
 			setNotification(false);
@@ -616,7 +616,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			return true;
 		} else {
 			if (mGameController.hasGame()) {
-				mGameController.stopGame();
+				mGameController.stopGame(false);
 			}
 
 			mGameController.setGameMode(getNextColor());
@@ -633,7 +633,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		}
 
 		mGameController.setGui(null);
-		mGameController.stopGame();
+		mGameController.stopGame(false);
 		mGameController = null;
 
 		resetChessBoardView();
@@ -873,8 +873,12 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	}
 
 	private void loadPGN(String pgn) {
+		if (!(mGameController instanceof EngineController)) {
+			throw new IllegalStateException("Must use engine controller for loading PGNs");
+		}
+
 		try {
-			mGameController.stopGame();
+			mGameController.stopGame(false);
 			mGameController.setGameMode(GameMode.ANALYSIS);
 			mGameController.setGameTextListener(new PGNScreenText(PreferenceManager.getDefaultSharedPreferences(this),
 					new PGNOptions()));
