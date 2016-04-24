@@ -60,7 +60,7 @@ public abstract class AbstractGameController implements GameController {
 		}
 
 		@Override
-		public void onNewGameStarted() {
+		public void onGameStarted() {
 
 		}
 

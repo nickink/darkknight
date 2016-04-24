@@ -17,7 +17,6 @@ import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -144,6 +143,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			}
 		} else {
 			mGameController = BluetoothGameController.getLastInstance(this);
+			mGameController.setGui(this);
 			setBluetoothDiscoverable();
 		}
 
@@ -200,6 +200,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	private boolean initEngineController() {
 		try {
 			mGameController = EngineController.getInstance();
+			mGameController.setGui(this);
 			return true;
 		} catch (UnsatisfiedLinkError e) {
 			// critical error, abort
@@ -482,14 +483,14 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		updateNotification();
 	}
 
-	@Override
-	protected void onStop() {
-		super.onStop();
-
-		if (mGameController != null) {
-			mGameController.setGui(null);
-		}
-	}
+//	@Override
+//	protected void onStop() {
+//		super.onStop();
+//
+//		if (mGameController != null) {
+//			mGameController.setGui(null);
+//		}
+//	}
 
 	@Override
 	protected void onDestroy() {
@@ -790,15 +791,13 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	private void switchFromBluetoothToEngine() {
 		if (!(mGameController instanceof BluetoothGameController)) {
-			throw new IllegalStateException("Not using Bluetooth to switch");
+			return;
 		}
 
 		destroyGame();
 
 		initEngineController();
 		createNewGame();
-		invalidateUi();
-
 		Toast.makeText(this, R.string.switched_to_playing_against_the_computer, Toast.LENGTH_LONG).show();
 	}
 
@@ -934,9 +933,13 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	}
 
 	@Override
-	public void onNewGameStarted() {
+	public void onGameStarted() {
 		if (mGameController.getGame() == null) {
 			throw new IllegalStateException("An internal error occurred, game was null");
+		}
+
+		if (BuildConfig.DEBUG) {
+			Log.i(getClass().getSimpleName(), "Game started at position " + mGameController.getGame().currPos().getFEN());
 		}
 
 		resetChessBoardView();
@@ -955,20 +958,15 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 	@Override
 	public void onGameRestored() {
-		new Handler().post(new Runnable() {
-			@Override
-			public void run() {
-				if (mGameController.isResumed()) {
-					return;
-				}
+		resetChessBoardView();
+		setBoardFlip();
+		invalidateUi();
 
-				resetChessBoardView();
-				setBoardFlip();
-				invalidateUi();
+		if (mGameController.isResumed()) {
+			return;
+		}
 
-				mGameController.resumeGame();
-			}
-		});
+		mGameController.resumeGame();
 	}
 
 	@Override

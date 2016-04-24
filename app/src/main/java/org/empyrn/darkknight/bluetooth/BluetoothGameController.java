@@ -3,8 +3,6 @@ package org.empyrn.darkknight.bluetooth;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -12,7 +10,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import org.empyrn.darkknight.BuildConfig;
-import org.empyrn.darkknight.GUIInterface;
 import org.empyrn.darkknight.GameMode;
 import org.empyrn.darkknight.R;
 import org.empyrn.darkknight.gamelogic.AbstractGameController;
@@ -179,7 +176,7 @@ public class BluetoothGameController extends AbstractGameController implements B
 		game = new Game(getGameTextListener(), Integer.MAX_VALUE,
 				Integer.MAX_VALUE, Integer.MAX_VALUE);
 
-		getGui().onNewGameStarted();
+		getGui().onGameStarted();
 	}
 
 	@Override

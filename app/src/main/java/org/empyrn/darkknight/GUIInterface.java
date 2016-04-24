@@ -22,9 +22,9 @@ public interface GUIInterface {
 	@Deprecated
 	void onPositionChanged(Position newPosition, String variantInfo, List<Move> variantMoves);
 
-	void onNewGameStarted();
-
 	void onGameRestored();
+
+	void onGameStarted();
 
 	void onGameResumed();
 

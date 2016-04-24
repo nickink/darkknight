@@ -3,7 +3,6 @@ package org.empyrn.darkknight.gamelogic;
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -276,7 +275,12 @@ public class EngineController extends AbstractGameController implements GameCont
 			game = createGameFromFENorPGN(fenPgn);
 		}
 
-		getGui().onNewGameStarted();
+		postEvent(new Runnable() {
+			@Override
+			public void run() {
+				getGui().onGameStarted();
+			}
+		});
 	}
 
 	@Override
