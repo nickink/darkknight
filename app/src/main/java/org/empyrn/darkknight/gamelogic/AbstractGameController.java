@@ -262,7 +262,8 @@ public abstract class AbstractGameController implements GameController {
 	/** True if human's turn to make a move. (True in analysis mode.) */
 	public final boolean isPlayerTurn() {
 		return getGame() != null && getGameMode() != null
-					&& getGameMode().isPlayerTurn(getGame().currPos().whiteMove);
+					&& getGameMode().isPlayerTurn((getGameMode() == GameMode.PLAYER_WHITE)
+				== getGame().currPos().whiteMove);
 	}
 
 	/** Return true if computer player is using CPU power. */

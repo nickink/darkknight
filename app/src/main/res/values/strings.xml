@@ -190,10 +190,8 @@ have a game using two devices. Start a game by finding the device to play the ga
 \n\
 \n\
 <b>Analysis</b>\n\
-Dark Knight can analyze games to find better alternatives to moves. By \
-using hints described above, players can optimize strategies and use the \
-computer to improve their play. Analysis can be activated in by tapping \
-the magnifying glass icon. \
+Dark Knight can analyze games to find better alternatives to moves. Analysis can be \
+activated in by tapping the magnifying glass icon. \
 \n\
 \n\
 <b>Opening book</b>\n\
@@ -270,8 +268,8 @@ If you are running on battery power, it is recommended that you disable analysis
 	<string name="select_color_theme">Select Color Theme</string>
 
     <string name="send">Send</string>
-    <string name="not_connected">You are not connected to a device</string>
-    <string name="bt_not_enabled_leaving">Bluetooth is not enabled, so Bluetooth gaming is unavailable</string>
+    <string name="not_connected">You are not connected to a device.</string>
+    <string name="bt_not_enabled_leaving">Bluetooth gaming is not available.</string>
     <string name="title_connecting">connecting…</string>
     <string name="title_connected_to">connected: </string>
     <string name="title_not_connected">not connected</string>

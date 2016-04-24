@@ -547,7 +547,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		forceMoveMenuItem.setEnabled(hasGame && !isUsingBluetooth
 				&& mGameController.isOpponentThinking());
 		offerDrawMenuItem.setEnabled(isPlayerTurn);
-		resignMenuItem.setEnabled(isPlayerTurn);
 
 		final boolean hasBluetooth = BluetoothAdapter.getDefaultAdapter() != null;
 
@@ -555,7 +554,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		startAnalysisMenuItem.setVisible(canAnalyze && !isUsingBluetooth);
 		stopAnalysisMenuItem.setVisible(hasGame && !canAnalyze && !isUsingBluetooth);
 		flipBoardMenuItem.setVisible(hasGame && !canAnalyze && !isUsingBluetooth);
+
 		resignMenuItem.setVisible(gameIsAlive && canResign && canAnalyze);
+		resignMenuItem.setEnabled(isPlayerTurn);
+
 		stopGameMenuItem.setEnabled(gameIsAlive && canAnalyze);
 
 		// stop game button is actually just a "feel good" resign button, although it can also
@@ -571,6 +573,11 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			bluetoothSubmenu.setIcon(isConnected ?
 					ContextCompat.getDrawable(this, R.drawable.ic_bluetooth_connected_white_24dp) :
 					ContextCompat.getDrawable(this, R.drawable.ic_bluetooth_white_24dp));
+
+			if (isUsingBluetooth && !isConnected) {
+				// if not connected to Bluetooth, resigning is definitely not available
+				resignMenuItem.setVisible(false);
+			}
 
 			final MenuItem startBluetoothGame = menu.findItem(R.id.bluetooth_create);
 			startBluetoothGame.setEnabled(isUsingBluetooth && !isConnected);
@@ -856,15 +863,13 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				break;
 			case REQUEST_ENABLE_BT:
 				// when the request to enable Bluetooth returns
-				if (resultCode >= 0) {
+				if (resultCode > 0) {
 					switchFromEngineToBluetooth();
 				} else {
 					// Bluetooth not enabled or an error occurred
 					Snackbar.make(mCoordinatorView, R.string.bt_not_enabled_leaving,
 							Snackbar.LENGTH_LONG).show();
 				}
-
-				invalidateUi();
 
 				break;
 		}
