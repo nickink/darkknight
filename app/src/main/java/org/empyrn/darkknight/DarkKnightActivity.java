@@ -663,6 +663,8 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 			}
 
 			mGameController.setGameMode(getNextColor());
+			mGameController.setGameTextListener(new PGNScreenText(PreferenceManager.getDefaultSharedPreferences(this),
+					new PGNOptions()));
 			mGameController.startGame();
 		}
 
