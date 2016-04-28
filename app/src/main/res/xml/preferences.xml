@@ -1,19 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <!--<PreferenceCategory-->
-    <!--android:title="Playing Options">-->
-    <!--<ListPreference-->
-    <!--android:key="gameMode"-->
-    <!--android:title="Game Mode"-->
-    <!--android:summary="Select opponent, analysis mode or computer match"-->
-    <!--android:entryValues="@array/game_mode_values"-->
-    <!--android:entries="@array/game_mode_texts"-->
-    <!--android:defaultValue="1">-->
-    <!--</ListPreference>-->
-    <!--</PreferenceCategory>-->
-    <!--<PreferenceCategory-->
-    <!--<PreferenceCategory-->
     <PreferenceCategory
         android:title="@string/playing_options">
         <ListPreference
@@ -43,12 +30,12 @@
             android:summary="Display computer algorithm information during search"
             android:title="Show Computer Thinking">
         </CheckBoxPreference>
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="bookHints"
-            android:summary="Display opening book move hints for human player"
-            android:title="Show Book Hints">
-        </CheckBoxPreference>
+        <!--<CheckBoxPreference-->
+            <!--android:defaultValue="false"-->
+            <!--android:key="bookHints"-->
+            <!--android:summary="Display opening book move hints for human player"-->
+            <!--android:title="Show Book Hints">-->
+        <!--</CheckBoxPreference>-->
         <ListPreference
             android:defaultValue="2"
             android:entries="@array/thinking_arrows_texts"
@@ -72,14 +59,14 @@
         <!--android:summary="Touching a square that corresponds to one unique move makes that move immediately"-->
         <!--android:defaultValue="false" />-->
     </PreferenceCategory>
-    <PreferenceCategory
-        android:title="Other">
-        <EditTextPreference
-            android:defaultValue=""
-            android:key="bookFile"
-            android:summary="Polyglot book file in DarkKnight directory on SD Card"
-            android:title="Book Filename">
-        </EditTextPreference>
+    <!--<PreferenceCategory-->
+        <!--android:title="Other">-->
+        <!--<EditTextPreference-->
+            <!--android:defaultValue=""-->
+            <!--android:key="bookFile"-->
+            <!--android:summary="Polyglot book file in DarkKnight directory on SD Card"-->
+            <!--android:title="Book Filename">-->
+        <!--</EditTextPreference>-->
         <!--<PreferenceScreen-->
         <!--android:key="pgnSettings"-->
         <!--android:title="PGN Settings"-->
@@ -166,5 +153,5 @@
         <!--</CheckBoxPreference>-->
         <!--</PreferenceCategory>-->
         <!--</PreferenceScreen>-->
-    </PreferenceCategory>
+    <!--</PreferenceCategory>-->
 </PreferenceScreen>
