@@ -142,9 +142,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		}
 
 		if (savedInstanceState == null || savedInstanceState.getInt("ControllerMode", MODE_ENGINE) == MODE_ENGINE) {
-			if (!initEngineController()) {
-				return;
-			}
+			initEngineController();
 		} else {
 			mGameController = BluetoothGameController.getLastInstance(this);
 			mGameController.setGui(this);
@@ -528,9 +526,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.options_menu, menu);
-
-		menu.removeItem(R.id.item_goto_move);           // don't allow go-to move for now
-
 		return true;
 	}
 
@@ -740,9 +735,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				startActivityForResult(i, RESULT_SETTINGS);
 				return true;
 			}
-			case R.id.item_goto_move:
-				showDialog(SELECT_MOVE_DIALOG);
-				return true;
 			case R.id.item_force_move:
 				((EngineController) mGameController).stopSearch();
 				return true;
@@ -1088,13 +1080,13 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		boolean thinkingEmpty = true;
 		{
 			String s = "";
-			if (mShowThinking || gameMode.analysisMode()) {
+			if (mShowThinking || (gameMode == GameMode.ANALYSIS)) {
 				s = currentThinkingInfo.pvStr;
 			}
 
 			thinkingInfoView.setText(s, TextView.BufferType.SPANNABLE);
 
-			if (!TextUtils.isEmpty(s)) {
+			if (BuildConfig.DEBUG && !TextUtils.isEmpty(s)) {
 				Log.d(getClass().getName(), "Thinking info: " + s);
 			}
 
@@ -1122,7 +1114,7 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 
 		List<Move> hints = null;
 
-		if (mShowThinking || gameMode.analysisMode()) {
+		if (mShowThinking || (gameMode == GameMode.ANALYSIS)) {
 			hints = currentThinkingInfo.pvMoves;
 		}
 
@@ -1253,52 +1245,6 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 				AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AppTheme_Dialog_Alert);
 				builder.setTitle(R.string.app_name).setMessage(R.string.about_info);
 				return builder.create();
-			}
-			case SELECT_MOVE_DIALOG: {
-//				final Dialog dialog = new Dialog(this);
-//				dialog.setContentView(R.layout.select_move_number);
-//				dialog.setTitle(R.string.goto_move);
-//				final EditText moveNrView = (EditText) dialog
-//						.findViewById(R.id.selmove_number);
-//				Button ok = (Button) dialog.findViewById(R.id.selmove_ok);
-//				Button cancel = (Button) dialog.findViewById(R.id.selmove_cancel);
-//				moveNrView.setText("1");
-//				final Runnable gotoMove = new Runnable() {
-//					public void run() {
-//						try {
-//							int moveNr = Integer.parseInt(moveNrView.getText()
-//									.toString());
-//							((EngineController) mGameController).goToMove(moveNr);
-//							dialog.cancel();
-//						} catch (NumberFormatException nfe) {
-//							Toast.makeText(getApplicationContext(),
-//									R.string.invalid_number_format,
-//									Toast.LENGTH_SHORT).show();
-//						}
-//					}
-//				};
-//				moveNrView.setOnKeyListener(new OnKeyListener() {
-//					public boolean onKey(View v, int keyCode, KeyEvent event) {
-//						if ((event.getAction() == KeyEvent.ACTION_DOWN)
-//								&& (keyCode == KeyEvent.KEYCODE_ENTER)) {
-//							gotoMove.run();
-//							return true;
-//						}
-//						return false;
-//					}
-//				});
-//				ok.setOnClickListener(new OnClickListener() {
-//					public void onClick(View v) {
-//						gotoMove.run();
-//					}
-//				});
-//				cancel.setOnClickListener(new OnClickListener() {
-//					public void onClick(View v) {
-//						dialog.cancel();
-//					}
-//				});
-//				return dialog;
-				break;
 			}
 			case SELECT_BOOK_DIALOG: {
 				String[] fileNames = findFilesInDirectory(BOOK_DIR);

@@ -222,7 +222,7 @@ public class EngineController extends AbstractGameController implements GameCont
 			return;
 		}
 
-		boolean analysis = gameMode.analysisMode();
+		boolean analysis = (gameMode == GameMode.ANALYSIS);
 		if (!analysis && isPlayerTurn()) {
 			//ss = new SearchStatus();
 			Pair<String, ArrayList<Move>> bi = EnginePlayer.getInstance()
@@ -385,7 +385,7 @@ public class EngineController extends AbstractGameController implements GameCont
 			return;
 		}
 
-		boolean gamePaused = gameMode.analysisMode()
+		boolean gamePaused = (gameMode == GameMode.ANALYSIS)
 				|| (isPlayerTurn() && !isGameResumed());
 		game.setGamePaused(gamePaused);
 		updateRemainingTime();

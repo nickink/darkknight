@@ -22,11 +22,6 @@ public enum GameMode {
 		return this == PLAYER_BLACK || this == TWO_PLAYERS;
 	}
 
-	@Deprecated
-	public final boolean analysisMode() {
-		return this == ANALYSIS;
-	}
-
 	public final boolean isPlayerTurn(@NonNull Game game) {
 		return isPlayerTurn(game.currPos().whiteMove);
 	}
