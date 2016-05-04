@@ -142,7 +142,10 @@ public class DarkKnightActivity extends AppCompatActivity implements GUIInterfac
 		}
 
 		if (savedInstanceState == null || savedInstanceState.getInt("ControllerMode", MODE_ENGINE) == MODE_ENGINE) {
-			initEngineController();
+			if (!initEngineController()) {
+				// if the engine couldn't be initialized, don't continue (activity will be finished automatically)
+				return;
+			}
 		} else {
 			mGameController = BluetoothGameController.getLastInstance(this);
 			mGameController.setGui(this);
