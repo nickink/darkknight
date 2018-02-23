@@ -12,5 +12,4 @@ LOCAL_CFLAGS    := -mandroid \
 LOCAL_STATIC_LIBRARIES := stockfish
 
 include $(BUILD_SHARED_LIBRARY)
-
-include jni/stockfish/Android.mk
+include $(LOCAL_PATH)/stockfish/Android.mk
