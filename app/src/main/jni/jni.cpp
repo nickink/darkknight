@@ -102,12 +102,12 @@ extern "C" JNIEXPORT jstring JNICALL Java_org_empyrn_darkknight_engine_NativePip
 		}
 		if (c == -1) { // Timeout
 			static char emptyString = 0;
-			return (*env).NewStringUTF(&emptyString);
+			return env->NewStringUTF(&emptyString);
 		}
 		if (c == '\n' || (c == '\r')) {
 			if (lineBuf.size() > 0) {
 				lineBuf.push_back(0);
-				jstring ret = (*env).NewStringUTF(&lineBuf[0]);
+				jstring ret = env->NewStringUTF(&lineBuf[0]);
 				lineBuf.clear();
 				return ret;
 			}
@@ -125,7 +125,7 @@ extern "C" JNIEXPORT jstring JNICALL Java_org_empyrn_darkknight_engine_NativePip
 extern "C" JNIEXPORT void JNICALL Java_org_empyrn_darkknight_engine_NativePipedProcess_writeToProcess
 		(JNIEnv* env, jobject obj, jstring msg)
 {
-    const char* str = (*env).GetStringUTFChars(msg, NULL);
+    const char* str = env->GetStringUTFChars(msg, NULL);
     if (str) {
     	int len = strlen(str);
     	int written = 0;
@@ -135,6 +135,6 @@ extern "C" JNIEXPORT void JNICALL Java_org_empyrn_darkknight_engine_NativePipedP
     			break;
     		written += n;
     	}
-    	(*env).ReleaseStringUTFChars(msg, str);
+    	env->ReleaseStringUTFChars(msg, str);
     }
 }
